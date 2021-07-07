@@ -7,6 +7,8 @@
 #include<chrono>
 #include<ctime>
 
+#include <sdsl/bp_support.hpp>
+
 using namespace std::chrono;
 
 
@@ -41,7 +43,7 @@ std::vector<std::vector<uint64_t>>* read_relation(const std::string filename, ui
 }
 int main(int argc, char** argv)
 {
-    qdag::att_set att_R;
+    /*qdag::att_set att_R;
     att_R.push_back(AT_Y); att_R.push_back(AT_X);
     std::string strRel_R(argv[1]);
     std::vector<std::vector<uint64_t>>* rel_R = read_relation(strRel_R, att_R.size());
@@ -56,5 +58,10 @@ int main(int argc, char** argv)
     std::ostream &output_stream = cout;
     Q->print(output_stream);
     return 0; //0101 0110 0010 0010 1000
-
+*/
+    bit_vector b = {1, 1, 0, 1,1,0,1,1,1,0,0,0,0,1,1,0,0,0};
+    bp_support_sada<> bps(&b); // <- pointer to b
+    cout << bps.find_close(4)+1 << ", "
+         << bps.find_close(3)+1  << endl;
+    return 0;
 }

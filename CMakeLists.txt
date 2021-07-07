@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(ranked_qdags)
+project(ccq_qdags)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -27,12 +27,12 @@ add_executable(qdags
     #queries/tr1.cpp
     #queries/tr2.cpp
     src/joins.cpp)
-add_executable(ranked_qdags src/test.cpp)
+add_executable(ccq_qdags src/test.cpp)
 add_executable(ex external/sdsl-lite/tutorial/expl-04.cpp)
 
-target_link_libraries(ranked_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/lib/libsdsl.a)
-target_link_libraries(ranked_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort.a)
-target_link_libraries(ranked_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort64.a)
+target_link_libraries(ccq_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/lib/libsdsl.a)
+target_link_libraries(ccq_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort.a)
+target_link_libraries(ccq_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort64.a)
 
 target_link_libraries(ex ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/lib/libsdsl.a)
 target_link_libraries(ex ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort.a)
