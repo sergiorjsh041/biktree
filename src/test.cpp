@@ -44,7 +44,7 @@ std::vector<std::vector<uint64_t>>* read_relation(const std::string filename, ui
 int main(int argc, char** argv)
 {
     qdag::att_set att_R;
-    att_R.push_back(AT_Y); att_R.push_back(AT_X);
+    att_R.push_back(AT_X); att_R.push_back(AT_Y);
     std::string strRel_R(argv[1]);
     std::vector<std::vector<uint64_t>>* rel_R = read_relation(strRel_R, att_R.size());
     uint64_t grid_side = 36;

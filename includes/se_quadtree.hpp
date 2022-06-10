@@ -527,17 +527,20 @@ class se_quadtree
                 for (int j = 0; j < aa_r; j++) {
                     // read each byte
                     if (j%4 == 0) {
-                        unsigned x;
+                        uint8_t x;
                         x = +bv[i].get_4_bits(j);
-                        for (int l= 3; 0 <= l; l--) {
-                            printf("%c", (x & (1 << l)) ? '1' : '0');
+
+                        for (int l = 0; l < 4; l++) {
+                            ost << ((x & (1 << l)) ? "1" : "0");
                         }
-                        printf(" ");
+                        ost << " ";
                     }
+
                 }
                 ost << endl;
             }
         }
 };
 #endif
-// Figura 1: 0100 0010 0010 1000 0010 1111 0100 0110
+// Figura 1:0100 0010 0010 1000 0010 1111 0100 0110
+//          0100 0010 0010 1000 0010 1111 0100 0110
