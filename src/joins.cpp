@@ -192,7 +192,7 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
     uint64_t i;
     uint64_t children_to_recurse_size = 0;
 
-    uint32_t children = 0xffffffff;
+    uint32_t children = 0xffffffff; // puros 1s
 
     if (cur_level == max_level)
     {
@@ -211,6 +211,7 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         i = 0;
         uint64_t msb;
 
+        // todos los hijos son resultados
         while (/*children &&*/ i < children_to_recurse_size)
         {
             msb = __builtin_clz(children);
@@ -247,6 +248,8 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         uint64_t root_temp[16 /*nQ*/]; // CUIDADO, solo hasta 16 relaciones por query
         uint64_t rank_vector[16][64];
 
+        // pide el nodo actual de cada qdag (devuelve entero de 32 bits) y hace AND con children
+        // sobreviven solo las ramas que tienen hijos en cada qdag
         for (i = 0; i < nQ && children; ++i)
         {
             k_d[i] = Q[i]->getKD();
@@ -258,26 +261,32 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
                 children &= Q[i]->materialize_node_5(cur_level, roots[i], rank_vector[i]);
         }
 
+        // por cuántos hijos voy a bajar, cuenta la cantitdad de 1s en un arreglo de bits/entero
         children_to_recurse_size = bits::cnt((uint64_t)children);
         i = 0;
         uint64_t msb;
 
+        // obtener todos los hijos
         while (/*children &&*/ i < children_to_recurse_size)
         {
+            // obtener el más significativo
             msb = __builtin_clz(children);
-            children_to_recurse[i] = msb;
+            children_to_recurse[i] = msb; // baja por el más significativo
             ++i;
-            children &= (((uint32_t)0xffffffff) >> (msb + 1));
+            children &= (((uint32_t)0xffffffff) >> (msb + 1)); // borra el más significativo
         }
 
         int64_t last_child = -1;
         uint16_t child;
 
+        // bajar por todos los hijos marcados
         for (i = 0; i < children_to_recurse_size; ++i)
         {
 
+            // hijo actual
             child = children_to_recurse[i];
 
+            // obtener la raíz de cada qdag, dónde está en el quadtree
             for (uint64_t j = 0; j < nQ; j++)
                 root_temp[j] = k_d[j] * (rank_vector[j][Q[j]->getM(child)] - 1);
 
@@ -290,6 +299,7 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
                 return false;
             else if (cur_level == max_level || AND(Q, root_temp, nQ, cur_level + 1, max_level, bv, last_pos, nAtt, bounded_result, UPPER_BOUND))
             {
+                //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
                 bv[cur_level].push_back(last_pos[cur_level]++);
                 just_zeroes = false;
             }
@@ -478,6 +488,150 @@ bool parAND(uint16_t totalThreads, uint16_t threadId, uint16_t levelOfCut, std::
     return !just_zeroes;
 }
 */
+
+
+bool SEMIJOIN(qdag *Q[], uint64_t *roots, uint16_t nQ,
+         uint16_t cur_level, uint16_t max_level,
+         vector<uint64_t> bv[], uint64_t last_pos[], uint64_t nAtt,
+         bool bounded_result, uint64_t UPPER_BOUND)
+{
+    uint64_t p = Q[0]->nChildren();
+    bool result = false;
+    //uint64_t root_temp[nQ];
+    bool just_zeroes = true;
+    uint64_t k_d[16 /*nQ*/]; //CUIDADO, solo hasta 16 relaciones por query
+
+    uint16_t children_to_recurse[512 /*p*/]; // CUIDADO, solo hasta 9 atributos distintos por query
+
+    uint64_t i;
+    uint64_t children_to_recurse_size = 0;
+
+    uint32_t children = 0xffffffff; // puros 1s
+
+    if (cur_level == max_level)
+    {
+        for (i = 0; i < nQ && children; ++i)
+        {
+            //k_d[i] = Q[i]->getKD();
+            if (nAtt == 3)
+                children &= Q[i]->materialize_node_3_lastlevel(cur_level, roots[i]);
+            else if (nAtt == 4)
+                children &= Q[i]->materialize_node_4_lastlevel(cur_level, roots[i]);
+            else if (nAtt == 5)
+                children &= Q[i]->materialize_node_5_lastlevel(cur_level, roots[i]);
+        }
+
+        children_to_recurse_size = bits::cnt((uint64_t)children);
+        i = 0;
+        uint64_t msb;
+
+        // todos los hijos son resultados
+        while (/*children &&*/ i < children_to_recurse_size)
+        {
+            msb = __builtin_clz(children);
+            children_to_recurse[i] = msb;
+            ++i;
+            children &= (((uint32_t)0xffffffff) >> (msb + 1));
+        }
+
+        int64_t last_child = -1;
+        uint16_t child;
+
+        for (i = 0; i < children_to_recurse_size; ++i)
+        {
+            child = children_to_recurse[i];
+
+            if (child - last_child > 1)
+                last_pos[cur_level] += (child - last_child - 1);
+
+            last_child = child;
+            if (bounded_result && bv[max_level].size() >= UPPER_BOUND)
+                return false;
+            else
+            {
+                bv[cur_level].push_back(last_pos[cur_level]++);
+                just_zeroes = false;
+            }
+        }
+
+        if (p - last_child > 1)
+            last_pos[cur_level] += (p - last_child - 1);
+    }
+    else
+    {
+        uint64_t root_temp[16 /*nQ*/]; // CUIDADO, solo hasta 16 relaciones por query
+        uint64_t rank_vector[16][64];
+
+        // pide el nodo actual de cada qdag (devuelve entero de 32 bits) y hace AND con children
+        // sobreviven solo las ramas que tienen hijos en cada qdag
+        for (i = 0; i < nQ && children; ++i)
+        {
+            k_d[i] = Q[i]->getKD();
+            if (nAtt == 3)
+                children &= Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i]);
+            else if (nAtt == 4)
+                children &= Q[i]->materialize_node_4(cur_level, roots[i], rank_vector[i]);
+            else if (nAtt == 5)
+                children &= Q[i]->materialize_node_5(cur_level, roots[i], rank_vector[i]);
+        }
+
+        // por cuántos hijos voy a bajar, cuenta la cantitdad de 1s en un arreglo de bits/entero
+        children_to_recurse_size = bits::cnt((uint64_t)children);
+        i = 0;
+        uint64_t msb;
+
+        // obtener todos los hijos
+        while (/*children &&*/ i < children_to_recurse_size)
+        {
+            // obtener el más significativo
+            msb = __builtin_clz(children);
+            children_to_recurse[i] = msb; // baja por el más significativo
+            ++i;
+            children &= (((uint32_t)0xffffffff) >> (msb + 1)); // borra el más significativo
+        }
+
+        int64_t last_child = -1;
+        uint16_t child;
+
+        // bajar por todos los hijos marcados
+        for (i = 0; i < children_to_recurse_size; ++i)
+        {
+
+            // hijo actual
+            child = children_to_recurse[i];
+
+            // obtener la raíz de cada qdag, dónde está en el quadtree
+            for (uint64_t j = 0; j < nQ; j++)
+                root_temp[j] = k_d[j] * (rank_vector[j][Q[j]->getM(child)] - 1);
+
+            if (child - last_child > 1)
+                last_pos[cur_level] += (child - last_child - 1);
+
+            last_child = child;
+
+            if (bounded_result && bv[max_level].size() >= UPPER_BOUND)
+                return false;
+            else if (cur_level == max_level || AND(Q, root_temp, nQ, cur_level + 1, max_level, bv, last_pos, nAtt, bounded_result, UPPER_BOUND))
+            {
+                //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
+                bv[cur_level].push_back(last_pos[cur_level]++);
+                just_zeroes = false;
+            }
+            else
+            {
+                if (cur_level < max_level)
+                    last_pos[cur_level + 1] -= p;
+                last_pos[cur_level]++;
+            }
+        }
+
+        if (p - last_child > 1)
+            last_pos[cur_level] += (p - last_child - 1);
+    }
+
+    return !just_zeroes;
+}
+
 
 uint64_t multiJoinCount(vector<qdag> &Q)
 {

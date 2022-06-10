@@ -43,25 +43,25 @@ std::vector<std::vector<uint64_t>>* read_relation(const std::string filename, ui
 }
 int main(int argc, char** argv)
 {
-    /*qdag::att_set att_R;
+    qdag::att_set att_R;
     att_R.push_back(AT_Y); att_R.push_back(AT_X);
     std::string strRel_R(argv[1]);
     std::vector<std::vector<uint64_t>>* rel_R = read_relation(strRel_R, att_R.size());
     uint64_t grid_side = 36;
 
 
-    se_quadtree* Q;
-    Q = new se_quadtree(*rel_R, grid_side, 2, att_R.size());
-    //printf("holi %" PRIu8 "\n", Q->bv[3].get_4_bits(8));
-
+    //cout << "R" << endl;
+    qdag qdag_rel_R(*rel_R, att_R, grid_side, 2, att_R.size());
 
     std::ostream &output_stream = cout;
-    Q->print(output_stream);
-    return 0; //0101 0110 0010 0010 1000
-*/
+    qdag_rel_R.print(output_stream);
+    return 0;
+
+    /*(  (   ) ( ( ) ( ( ( ) ) ) ) ( ( ) ) )
     bit_vector b = {1, 1, 0, 1,1,0,1,1,1,0,0,0,0,1,1,0,0,0};
     bp_support_sada<> bps(&b); // <- pointer to b
     cout << bps.find_close(4)+1 << ", "
          << bps.find_close(3)+1  << endl;
+         */
     return 0;
 }

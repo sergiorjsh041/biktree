@@ -12,7 +12,7 @@ include_directories(src)
 add_executable(qdags
     queries/j3.cpp
     queries/j4.cpp
-    #queries/p2.cpp
+    queries/p2.cpp
     #queries/p3.cpp
     #queries/p4.cpp
     #queries/s1.cpp
@@ -27,7 +27,7 @@ add_executable(qdags
     #queries/tr1.cpp
     #queries/tr2.cpp
     src/joins.cpp)
-add_executable(ccq_qdags src/test.cpp)
+add_executable(ccq_qdags  src/test.cpp) #src/test.cpp
 add_executable(ex external/sdsl-lite/tutorial/expl-04.cpp)
 
 target_link_libraries(ccq_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/lib/libsdsl.a)

@@ -514,31 +514,30 @@ class se_quadtree
             return height;        
         }
 
-
+        // Prints quadtree level by level
         void print(std::ostream &ost) {
-           uint64_t i, j, aa_r, zz;
-           for (i = 1; i < height; i++) {
-               if (bv[i].size() > 0)
-                   aa_r = bv[i].size();
-               else
-                   aa_r = 0;
-               ost << "level " << i << ": ";
+           uint64_t i, j, l, aa_r, zz;
+            for (i = 1; i < height; i++) {
+                if (bv[i].size() > 0)
+                    aa_r = bv[i].size();
+                else
+                    aa_r = 0;
+                ost << "level " << i << ": ";
 
-               for (int j = 0; j < aa_r; j++) {
-                   if (j%4 == 0) {
-                       unsigned x;
-                       x = +bv[i].get_4_bits(j);
-                       std::string s;
-                       do
-                       {
-                           s.push_back('0' + (x & 1));
-                       } while (x >>= 1);
-                       ost << s << " ";
-                   }
-               }
-               ost << endl;
-           }
+                for (int j = 0; j < aa_r; j++) {
+                    // read each byte
+                    if (j%4 == 0) {
+                        unsigned x;
+                        x = +bv[i].get_4_bits(j);
+                        for (int l= 3; 0 <= l; l--) {
+                            printf("%c", (x & (1 << l)) ? '1' : '0');
+                        }
+                        printf(" ");
+                    }
+                }
+                ost << endl;
+            }
         }
-
 };
 #endif
+// Figura 1: 0100 0010 0010 1000 0010 1111 0100 0110

@@ -381,12 +381,12 @@ class qdag
         inline uint32_t materialize_node_5_lastlevel(uint64_t level, uint64_t node) {
             return tab_extend_5[Q->get_node_lastlevel(level, node)];
         }
- 
-           
-        //void print(std::ofstream &ofs)
-        //{
-        //    Q->print(ofs);        
-        //}
+
+
+        void print(std::ostream &ost)
+        {
+            Q->print(ost);
+        }
 };
 
 #endif
