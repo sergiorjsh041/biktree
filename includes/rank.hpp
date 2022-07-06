@@ -10,12 +10,12 @@ using namespace std;
 
 class rank_bv_64
 {
-    uint64_t* seq;
     uint32_t* block;
     uint64_t u;  //bit vector length
     uint64_t n; // # ones
     
    public:
+    uint64_t* seq;
     rank_bv_64() = default;
     
     rank_bv_64(bit_vector &bv)
@@ -32,7 +32,7 @@ class rank_bv_64
         for (i = 0; i < u; ++i) {
 
             if (i%64 == 0)
-                block[cur_word++] = count; 
+                block[cur_word++] = count;
                 
             if (bv[i]) {
                 count++;
@@ -40,16 +40,41 @@ class rank_bv_64
             }
             else 
                 seq[i/64] &= ~(1L<<(i%64));
-
-            // imprimir la construccion
-            /*cout << bv[i];
-            if ((i + 1) % 4 == 0)
-                cout << " ";
-            	*/
         }
 
-        //cout << endl;
         n = count;
+    }
+
+    rank_bv_64(vector<uint64_t> _bv)
+    {
+        u = _bv[_bv.size() - 1] + 1; //last element
+        n = _bv.size(); // each element  is a position with a 1
+
+        bit_vector bv = bit_vector(u, 0);
+        // for each 1 in _bv, we mark it in bv
+        for (int i = 0;  i < n; i++) {
+            bv[_bv[i]] = 1;
+        }
+
+        uint64_t i;
+        uint8_t byte_mask;
+        uint32_t cur_word = 0, count = 0;
+
+        seq = new uint64_t[(u+63)/64]();
+        block = new uint32_t[(u+63)/64]();
+
+        for (i = 0; i < u; ++i) {
+
+            if (i%64 == 0)
+                block[cur_word++] = count;
+
+            if (bv[i]) {
+                count++;
+                seq[i/64] |= (1L<<(i%64));
+            }
+            else
+                seq[i/64] &= ~(1L<<(i%64));
+        }
     }
 
 
@@ -67,6 +92,11 @@ class rank_bv_64
     inline uint8_t get_2_bits(uint64_t start_pos)
     {
         return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0x03);
+    }
+
+    inline uint8_t get_8_bits(uint64_t start_pos)
+    {
+        return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0xff);
     }
  
     // number of bits in the bv

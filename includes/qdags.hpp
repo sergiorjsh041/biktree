@@ -10,9 +10,9 @@
 #include<chrono>
 #include<ctime>
 
-extern high_resolution_clock::time_point start_rank, stop_rank;
-extern double total_time_rank;
-extern duration<double> time_span_rank;
+//extern high_resolution_clock::time_point start_rank, stop_rank;
+//extern double total_time_rank;
+//extern duration<double> time_span_rank;
 
 typedef uint8_t type_mapping_M;
 
@@ -45,10 +45,10 @@ class qdag
 
         int32_t tab_extend_5[16];   // queries of 5 attributes, i.e., dimension 2^5=32
         int32_t tab_extend_4[16];
-        int32_t tab_extend_3[16]; 
+        int32_t tab_extend_3[16];
 
     public:
-        
+
         qdag() = default;
 
         uint64_t size()
@@ -208,6 +208,7 @@ class qdag
                 i_prime = 0;
                
                 for (uint16_t j = 0; j < dim_prime; ++j) {
+                    // Tomar todos los 1 que estan en la pos adecuada en el attribute set
                     if (i & (1 << (dim-attribute_set[j]-1)))
                         i_prime |= mask;
                 

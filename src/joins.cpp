@@ -1,6 +1,12 @@
 #include <algorithm>
 #include "qdags.hpp"
 
+void tobinary(unsigned number){
+    if (number > 1)
+        tobinary(number/2);
+    cout << number % 2;
+}
+
 void ANDCount(qdag *Q[], uint64_t *roots, uint16_t nQ,
               uint16_t cur_level, uint16_t max_level,
               uint64_t &ntuples, uint64_t nAtt)
@@ -211,6 +217,8 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         i = 0;
         uint64_t msb;
 
+
+
         // todos los hijos son resultados
         while (/*children &&*/ i < children_to_recurse_size)
         {
@@ -253,9 +261,11 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         for (i = 0; i < nQ && children; ++i)
         {
             k_d[i] = Q[i]->getKD();
-            if (nAtt == 3)
+            if (nAtt == 3) {
+                tobinary(Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i]));
+                cout << endl;
                 children &= Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i]);
-            else if (nAtt == 4)
+            } else if (nAtt == 4)
                 children &= Q[i]->materialize_node_4(cur_level, roots[i], rank_vector[i]);
             else if (nAtt == 5)
                 children &= Q[i]->materialize_node_5(cur_level, roots[i], rank_vector[i]);
@@ -314,7 +324,6 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         if (p - last_child > 1)
             last_pos[cur_level] += (p - last_child - 1);
     }
-
     return !just_zeroes;
 }
 
@@ -779,6 +788,7 @@ qdag *multiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
             cout << "Code only works for queries of up to 5 attributes..." << endl;
             exit(1);
         }
+
         Q_roots[i] = 0; // root of every qdag
     }
 
@@ -790,8 +800,8 @@ qdag *multiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
 
     AND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
 
-    qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
 
+    qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
     return qResult;
 }
 

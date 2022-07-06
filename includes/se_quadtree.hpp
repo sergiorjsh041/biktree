@@ -283,15 +283,12 @@ class se_quadtree
             k_d = std::pow(k, d);
             
             // cout << /*"Join has " <<*/ _bv[height-1].size() << " \t"/* << endl*/;            
-            
-	    // OJO con lo que sigue, tengo que hacer este constructor de buena manera
+
 		
-            /*for (uint64_t i = 0; i < height; i++) {
-                bv[i] = new sdsl::sd_vector<>(_bv[i].begin(),_bv[i].end());
-                bv_rank[i] = sd_vector<>::rank_1_type(bv[i]);
-                bv_select[i] = sd_vector<>::select_1_type(bv[i]);
-                total_ones[i] = bv_rank[i].rank(bv[i]->size());    
-            }*/
+            for (uint64_t i = 0; i < height; i++) {
+                bv[i] = rank_bv_64(_bv[i]);
+                total_ones[i] = _bv[i].size();
+            }
             
         }
         
@@ -526,7 +523,7 @@ class se_quadtree
 
                 for (int j = 0; j < aa_r; j++) {
                     // read each byte
-                    if (j%4 == 0) {
+                    if (j%4 == 0) {// TODO: use d
                         uint8_t x;
                         x = +bv[i].get_4_bits(j);
 
