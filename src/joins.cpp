@@ -262,7 +262,6 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         {
             k_d[i] = Q[i]->getKD();
             if (nAtt == 3) {
-                tobinary(Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i]));
                 cout << endl;
                 children &= Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i]);
             } else if (nAtt == 4)

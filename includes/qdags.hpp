@@ -336,8 +336,8 @@ class qdag
             //if (Q->getKD() == 2) 
             //    B = 4;
             //else
-            //    B = 16;
- 
+            //    B = 16
+
             for (i = 0; i < B; i++) {
                 x = 0;
                 for(j = 0; j < 8; j++)
