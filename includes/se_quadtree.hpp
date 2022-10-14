@@ -513,7 +513,8 @@ class se_quadtree
 
         // Prints quadtree level by level
         void print(std::ostream &ost) {
-           uint64_t i, j, l, aa_r, zz;
+            size_type dim = pow(k, d);
+            uint64_t i, j, l, aa_r, zz;
             for (i = 1; i < height; i++) {
                 if (bv[i].size() > 0)
                     aa_r = bv[i].size();
@@ -523,11 +524,11 @@ class se_quadtree
 
                 for (int j = 0; j < aa_r; j++) {
                     // read each byte
-                    if (j%4 == 0) {// TODO: use d
+                    if (j%dim == 0) {
                         uint8_t x;
-                        x = +bv[i].get_4_bits(j);
+                        x = +bv[i].get_8_bits(j);
 
-                        for (int l = 0; l < 4; l++) {
+                        for (int l = 0; l < dim; l++) {
                             ost << ((x & (1 << l)) ? "1" : "0");
                         }
                         ost << " ";
