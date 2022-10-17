@@ -156,6 +156,7 @@ class se_quadtree
                 if (l != cur_l) {                    
                     cur_l = l;
                     k_t_.resize(t);
+                    active_.resize(t);
                     bv[cur_level] = rank_bv_64(k_t_);
                     cout << k_t_ << endl;
                     active[cur_level] = rank_bv_64(active_);
@@ -241,6 +242,8 @@ class se_quadtree
 
             k_t_.resize(t);
             bv[height-1] = rank_bv_64(k_t_);
+            active_.resize(t);
+            active[height-1] = rank_bv_64(active_);
             
             total_ones[height-1] = bv[height-1].n_ones();    
         
@@ -549,6 +552,33 @@ class se_quadtree
                 ost << endl;
             }
         }
+
+    void print_active(std::ostream &ost) {
+        size_type dim = pow(k, d);
+        uint64_t i, j, l, aa_r, zz;
+        for (i = 1; i < height; i++) {
+            if (active[i].size() > 0)
+                aa_r = active[i].size();
+            else
+                aa_r = 0;
+            ost << "level " << i << ": ";
+
+            for (int j = 0; j < aa_r; j++) {
+                // read each byte
+                if (j%dim == 0) {
+                    uint8_t x;
+                    x = +active[i].get_4_bits(j);
+
+                    for (int l = 0; l < dim; l++) {
+                        ost << ((x & (1 << l)) ? "1" : "0");
+                    }
+                    ost << " ";
+                }
+
+            }
+            ost << endl;
+        }
+    }
 };
 #endif
 // Figura 1:0100 0010 0010 1000 0010 1111 0100 0110

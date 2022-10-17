@@ -80,42 +80,45 @@ int main(int argc, char** argv)
     //cout << "Grid side: " << grid_side << endl;
 
     qdag qdag_rel_R(*rel_R, att_R, grid_side, 2, att_R.size());
-    qdag qdag_rel_S(*rel_S, att_S, grid_side, 2, att_S.size());
+    //qdag qdag_rel_S(*rel_S, att_S, grid_side, 2, att_S.size());
 
     std::ostream &output_stream = cout;
-    cout << "S:\n";
-    qdag_rel_S.print(output_stream);
+    //cout << "S:\n";
+    //qdag_rel_S.print(output_stream);
     cout << "\nR:\n";
     qdag_rel_R.print(output_stream);
+    cout << endl,
+
+    qdag_rel_R.print_active(output_stream);
     // cout << ((((float)qdag_rel_R.size()*8) + ((float)qdag_rel_S.size()*8) )/(rel_R->size()*2 + rel_S->size()*2)) << "\t";
 
     vector<qdag> Q(2);
 
     Q[0] = qdag_rel_R;
-    Q[1] = qdag_rel_S;
+    //Q[1] = qdag_rel_S;
 
-    qdag::att_set A;
-    map<uint64_t, uint8_t> attr_map;
+    //qdag::att_set A;
+    //map<uint64_t, uint8_t> attr_map;
+//
+    //// computes the union of the attribute sets
+    //for (uint64_t i = 0; i < Q.size(); i++)
+    //{
+    //    uint64_t nAttr = Q[i].nAttr();
+    //    for (uint64_t j = 0; j < nAttr; j++)
+    //        attr_map[Q[i].getAttr(j)] = 1;
+    //}
+//
+    //for (map<uint64_t, uint8_t>::iterator it = attr_map.begin(); it != attr_map.end(); it++)
+    //    A.push_back(it->first);
+//
+    //qdag* T = qdag_rel_R.extend(A);
+    //output_stream << "\n";
+    //output_stream << T->materialize_node_3_lastlevel();
 
-    // computes the union of the attribute sets
-    for (uint64_t i = 0; i < Q.size(); i++)
-    {
-        uint64_t nAttr = Q[i].nAttr();
-        for (uint64_t j = 0; j < nAttr; j++)
-            attr_map[Q[i].getAttr(j)] = 1;
-    }
-
-    for (map<uint64_t, uint8_t>::iterator it = attr_map.begin(); it != attr_map.end(); it++)
-        A.push_back(it->first);
-
-    qdag* T = qdag_rel_R.extend(A);
-    output_stream << "\n";
-    output_stream << T->materialize_node_3_lastlevel();
-
-    qdag *Join_Result;
-    Join_Result = multiJoin(Q, false, 1000);
-    cout << "\n";
-    Join_Result->print(output_stream);
+    //qdag *Join_Result;
+    //Join_Result = multiJoin(Q, false, 1000);
+    //cout << "\n";
+    //Join_Result->print(output_stream);
 
     return 0;
 }

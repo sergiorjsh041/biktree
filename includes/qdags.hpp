@@ -388,6 +388,12 @@ class qdag
         {
             Q->print(ost);
         }
+
+
+        void print_active(std::ostream &ost)
+        {
+            Q->print_active(ost);
+        }
 };
 
 #endif
