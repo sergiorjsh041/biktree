@@ -498,7 +498,7 @@ bool parAND(uint16_t totalThreads, uint16_t threadId, uint16_t levelOfCut, std::
 */
 
 
-bool SEMIJOIN(qdag *Q[], uint64_t *roots, uint16_t nQ,
+bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
          uint16_t cur_level, uint16_t max_level,
          vector<uint64_t> bv[], uint64_t last_pos[], uint64_t nAtt,
          bool bounded_result, uint64_t UPPER_BOUND)
@@ -534,6 +534,7 @@ bool SEMIJOIN(qdag *Q[], uint64_t *roots, uint16_t nQ,
         uint64_t msb;
 
         // todos los hijos son resultados
+        //TODO: hacer AND con active 
         while (/*children &&*/ i < children_to_recurse_size)
         {
             msb = __builtin_clz(children);
@@ -557,7 +558,7 @@ bool SEMIJOIN(qdag *Q[], uint64_t *roots, uint16_t nQ,
                 return false;
             else
             {
-                bv[cur_level].push_back(last_pos[cur_level]++);
+                bv[cur_level].push_back(last_pos[cur_level]++); //TODO: en vez de crear bv, cambiar active de qdag izquierdo
                 just_zeroes = false;
             }
         }
@@ -572,6 +573,7 @@ bool SEMIJOIN(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
         // pide el nodo actual de cada qdag (devuelve entero de 32 bits) y hace AND con children
         // sobreviven solo las ramas que tienen hijos en cada qdag
+        //TODO: hacer AND con active
         for (i = 0; i < nQ && children; ++i)
         {
             k_d[i] = Q[i]->getKD();
@@ -622,7 +624,7 @@ bool SEMIJOIN(qdag *Q[], uint64_t *roots, uint16_t nQ,
             else if (cur_level == max_level || AND(Q, root_temp, nQ, cur_level + 1, max_level, bv, last_pos, nAtt, bounded_result, UPPER_BOUND))
             {
                 //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
-                bv[cur_level].push_back(last_pos[cur_level]++);
+                bv[cur_level].push_back(last_pos[cur_level]++); //TODO: en vez de crear bv, cambiar active del qdag izq
                 just_zeroes = false;
             }
             else
@@ -799,7 +801,7 @@ qdag *multiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
 
     AND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
 
-
+    
     qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
     return qResult;
 }
@@ -869,3 +871,55 @@ qdag *parMultiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
     return qResult;
 }
 */
+
+
+void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
+{
+    qdag::att_set A;
+    map<uint64_t, uint8_t> attr_map;
+
+    // computes the union of the attribute sets
+    for (uint64_t i = 0; i < Q.size(); i++)
+    {
+        uint64_t nAttr = Q[i].nAttr();
+        for (uint64_t j = 0; j < nAttr; j++)
+            attr_map[Q[i].getAttr(j)] = 1;
+    }
+
+    for (map<uint64_t, uint8_t>::iterator it = attr_map.begin(); it != attr_map.end(); it++)
+        A.push_back(it->first);
+
+    qdag *Q_star[Q.size()];
+    uint64_t Q_roots[Q.size()];
+
+    for (uint64_t i = 0; i < Q.size(); i++)
+    {
+        Q_star[i] = Q[i].extend(A);
+        if (A.size() == 3)
+            Q_star[i]->createTableExtend3();
+        else if (A.size() == 4)
+            Q_star[i]->createTableExtend4();
+        else if (A.size() == 5)
+            Q_star[i]->createTableExtend5();
+        else
+        {
+            cout << "Code only works for queries of up to 5 attributes..." << endl;
+            exit(1);
+        }
+
+        Q_roots[i] = 0; // root of every qdag
+    }
+
+    vector<uint64_t> bv[Q_star[0]->getHeight()]; // OJO, asume que todos los qdags son de la misma altura
+    uint64_t last_pos[Q_star[0]->getHeight()];
+
+    for (uint64_t i = 0; i < Q_star[0]->getHeight(); i++)
+        last_pos[i] = 0;
+
+    AND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
+
+    //BORRAR
+    Q[0].Q->set_active(bv);
+
+    //qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
+}

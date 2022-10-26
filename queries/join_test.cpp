@@ -80,22 +80,24 @@ int main(int argc, char** argv)
     //cout << "Grid side: " << grid_side << endl;
 
     qdag qdag_rel_R(*rel_R, att_R, grid_side, 2, att_R.size());
-    //qdag qdag_rel_S(*rel_S, att_S, grid_side, 2, att_S.size());
+    qdag qdag_rel_S(*rel_S, att_S, grid_side, 2, att_S.size());
 
     std::ostream &output_stream = cout;
-    //cout << "S:\n";
-    //qdag_rel_S.print(output_stream);
+    cout << "S:\n";
+    qdag_rel_S.print(output_stream);
     cout << "\nR:\n";
     qdag_rel_R.print(output_stream);
-    cout << endl,
+    cout << endl;
 
-    qdag_rel_R.print_active(output_stream);
+    //qdag_rel_S.print_active(output_stream);
     // cout << ((((float)qdag_rel_R.size()*8) + ((float)qdag_rel_S.size()*8) )/(rel_R->size()*2 + rel_S->size()*2)) << "\t";
+    //cout << endl;
+    //qdag_rel_R.print_active(output_stream);
 
     vector<qdag> Q(2);
 
     Q[0] = qdag_rel_R;
-    //Q[1] = qdag_rel_S;
+    Q[1] = qdag_rel_S;
 
     //qdag::att_set A;
     //map<uint64_t, uint8_t> attr_map;
@@ -115,10 +117,17 @@ int main(int argc, char** argv)
     //output_stream << "\n";
     //output_stream << T->materialize_node_3_lastlevel();
 
-    //qdag *Join_Result;
-    //Join_Result = multiJoin(Q, false, 1000);
-    //cout << "\n";
-    //Join_Result->print(output_stream);
+    qdag *Join_Result;
+    Join_Result = multiJoin(Q, false, 1000);
+    Join_Result->print(output_stream);
+
+    semiJoin(Q, false, 1000);
+
+    cout << endl;
+    Q[0].print_active(output_stream);
+
+    cout << endl;
+    Q[1].print_active(output_stream);
 
     return 0;
 }

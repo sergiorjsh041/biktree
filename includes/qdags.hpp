@@ -27,9 +27,9 @@ class qdag
     public:
         
         typedef vector<uint64_t> att_set;
+        se_quadtree* Q;
 
 	 private:
-        se_quadtree* Q;
 	            
         type_mapping_M*    M;    // mapping
         
@@ -144,7 +144,7 @@ class qdag
              uint8_t k, uint8_t d
 				)
         {
-           Q = new se_quadtree(bv, _grid_side, k, d);
+           Q = new se_quadtree(bv, bv,_grid_side, k, d);
 
            Msize = std::pow(k, d);           
            

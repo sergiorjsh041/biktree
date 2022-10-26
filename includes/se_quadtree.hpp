@@ -158,9 +158,7 @@ class se_quadtree
                     k_t_.resize(t);
                     active_.resize(t);
                     bv[cur_level] = rank_bv_64(k_t_);
-                    cout << k_t_ << endl;
                     active[cur_level] = rank_bv_64(active_);
-                    cout << active_ << endl;
                     total_ones[cur_level] = bv[cur_level].n_ones();    
                     cur_level++;
                     t = 0;
@@ -284,7 +282,7 @@ class se_quadtree
         }
         
         
-        se_quadtree(vector<uint64_t> _bv[], const size_type grid_side, uint8_t _k, uint8_t _d)
+        se_quadtree(vector<uint64_t> _bv[], vector<uint64_t> _active[], const size_type grid_side, uint8_t _k, uint8_t _d)
         {
             k = _k;
             d = _d;  
@@ -302,6 +300,11 @@ class se_quadtree
             for (uint64_t i = 0; i < height; i++) {
                 bv[i] = rank_bv_64(_bv[i]);
                 total_ones[i] = _bv[i].size();
+            }
+
+            active = new rank_bv_64[height];
+            for (uint64_t j = 0; j < height; j++) {
+                active[j] = rank_bv_64(_active[j]);
             }
             
         }
@@ -552,6 +555,15 @@ class se_quadtree
                 ost << endl;
             }
         }
+
+
+    void set_active(vector<uint64_t> _active[]) {
+        active = new rank_bv_64[height];
+        for (uint64_t i = 0; i < height; i++) {
+            active[i] = rank_bv_64(_active[i]);
+        }
+    }
+
 
     void print_active(std::ostream &ost) {
         size_type dim = pow(k, d);
