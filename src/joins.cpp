@@ -638,7 +638,7 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         if (p - last_child > 1)
             last_pos[cur_level] += (p - last_child - 1);
     }
-
+    
     return !just_zeroes;
 }
 
@@ -919,7 +919,7 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
     AND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
 
     //BORRAR
-    Q[0].Q->set_active(bv);
+    //Q[0].Q->set_active(bv);
 
     //qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
 }

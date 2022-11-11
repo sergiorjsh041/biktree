@@ -14,7 +14,7 @@ duration<double> time_span_select;
 
 #define AT_X1 0
 #define AT_X2 1
-#define AT_X4 2
+#define AT_X3 2
 
 
 std::vector<std::vector<uint64_t>>* read_relation(const std::string filename, uint16_t n_Atts)
@@ -59,12 +59,11 @@ uint64_t maximum_in_table(std::vector<std::vector<uint64_t>> &table, uint16_t n_
 
 int main(int argc, char** argv)
 {
-    cout << "something is running \n";
     qdag::att_set att_R;
     qdag::att_set att_S;
 
     att_R.push_back(AT_X1); att_R.push_back(AT_X2);
-    att_S.push_back(AT_X2); att_S.push_back(AT_X4);
+    att_S.push_back(AT_X2); att_S.push_back(AT_X3);
 
     std::string strRel_R(argv[1]), strRel_S(argv[2]);
     std::vector<std::vector<uint64_t>>* rel_R = read_relation(strRel_R, att_R.size());
@@ -87,47 +86,24 @@ int main(int argc, char** argv)
     qdag_rel_S.print(output_stream);
     cout << "\nR:\n";
     qdag_rel_R.print(output_stream);
-    cout << endl;
 
-    //qdag_rel_S.print_active(output_stream);
-    // cout << ((((float)qdag_rel_R.size()*8) + ((float)qdag_rel_S.size()*8) )/(rel_R->size()*2 + rel_S->size()*2)) << "\t";
-    //cout << endl;
-    //qdag_rel_R.print_active(output_stream);
+    qdag_rel_R.print_active(output_stream);
+    cout << endl;
 
     vector<qdag> Q(2);
 
     Q[0] = qdag_rel_R;
     Q[1] = qdag_rel_S;
-
-    //qdag::att_set A;
-    //map<uint64_t, uint8_t> attr_map;
-//
-    //// computes the union of the attribute sets
-    //for (uint64_t i = 0; i < Q.size(); i++)
-    //{
-    //    uint64_t nAttr = Q[i].nAttr();
-    //    for (uint64_t j = 0; j < nAttr; j++)
-    //        attr_map[Q[i].getAttr(j)] = 1;
-    //}
-//
-    //for (map<uint64_t, uint8_t>::iterator it = attr_map.begin(); it != attr_map.end(); it++)
-    //    A.push_back(it->first);
-//
-    //qdag* T = qdag_rel_R.extend(A);
-    //output_stream << "\n";
-    //output_stream << T->materialize_node_3_lastlevel();
-
+//0100, 0011, 0101, 0010 0100, 0001 1001
+    //vector<uint64_t> active[] = {{4},{3},{5},{2,4},{1,9}};
+    bit_vector iactive[] = {{0,1,0,0}, {0,0,1,1}, {0,1,0,1}, {0,0,1,0,0,1,0,0}, {0,0,0,1,1,0,0,1}};   
+    Q[0].Q->set_active(iactive);
+    cout << "\n nuevo active \n";
+    Q[0].print_active(output_stream);
+    //
     qdag *Join_Result;
     Join_Result = multiJoin(Q, false, 1000);
     Join_Result->print(output_stream);
-
-    semiJoin(Q, false, 1000);
-
-    cout << endl;
-    Q[0].print_active(output_stream);
-
-    cout << endl;
-    Q[1].print_active(output_stream);
-
+    
     return 0;
 }
