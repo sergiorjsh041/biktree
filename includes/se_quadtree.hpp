@@ -129,7 +129,7 @@ protected:
         bit_vector k_t_ = bit_vector(k_d, 0); // OJO, cuidado con esto
         // NOTA: se podrá usar esto en vez de rankbv para el bm de active?
         // create bit vector of size kd full of 1s, because at first all cells are active
-        bit_vector active_ = bit_vector(k_d, 1);
+        bit_vector active_ = bit_vector(k_d, 0);
 
         std::queue<t_part_tuple> q;
         idx_type t = 0, last_level = 0;
@@ -339,9 +339,9 @@ public:
     inline uint8_t get_node_lastlevel(uint16_t level, uint64_t node)
     {
         if (k_d == 4)
-            return bv[level].get_4_bits(node) & active[level].get_4_bits(node);
+            return bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
         else
-            return bv[level].get_2_bits(node) & active[level].get_2_bits(node);
+            return bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
     }
 
     inline uint8_t get_node(uint16_t level, uint64_t node, uint64_t *rank_array, uint64_t rank_value)
@@ -349,7 +349,7 @@ public:
         uint8_t nd = bv[level].get_4_bits(node);
         if (k_d == 4)
         {
-            nd = bv[level].get_4_bits(node) & active[level].get_4_bits(node);
+            nd = bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
             switch (nd)
             {
             case 0:
@@ -420,7 +420,7 @@ public:
         }
         else
         {
-            nd = bv[level].get_2_bits(node) & active[level].get_2_bits(node);
+            nd = bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
             switch (nd)
             {
             case 0:
@@ -489,14 +489,14 @@ public:
         }
     }
 
-    void set_active(bit_vector _active[])
-    {
-        //active = new rank_bv_64[height];
-        for (uint64_t i = 0; i < height-1; i++)
-        {
-            active[i+1] = rank_bv_64(_active[i]);
-        }
-    }
+    //void set_active(vector<uint64_t> _active[])//bit_vector _active[])//
+    //{
+    //    //active = new rank_bv_64[height];
+    //    for (uint64_t i = 0; i < height-1; i++)
+    //    {
+    //        active[i+1] = rank_bv_64(_active[i]);
+    //    }
+    //}
 
     void print_active(std::ostream &ost)
     {

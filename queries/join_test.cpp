@@ -82,28 +82,30 @@ int main(int argc, char** argv)
     qdag qdag_rel_S(*rel_S, att_S, grid_side, 2, att_S.size());
 
     std::ostream &output_stream = cout;
-    cout << "S:\n";
-    qdag_rel_S.print(output_stream);
-    cout << "\nR:\n";
+    cout << "izquierda:\n";
     qdag_rel_R.print(output_stream);
+    cout << "\nderecha:\n";
+    qdag_rel_S.print(output_stream);
 
-    qdag_rel_R.print_active(output_stream);
-    cout << endl;
 
     vector<qdag> Q(2);
 
     Q[0] = qdag_rel_R;
     Q[1] = qdag_rel_S;
 //0100, 0011, 0101, 0010 0100, 0001 1001
-    //vector<uint64_t> active[] = {{4},{3},{5},{2,4},{1,9}};
-    bit_vector iactive[] = {{0,1,0,0}, {0,0,1,1}, {0,1,0,1}, {0,0,1,0,0,1,0,0}, {0,0,0,1,1,0,0,1}};   
-    Q[0].Q->set_active(iactive);
-    cout << "\n nuevo active \n";
-    Q[0].print_active(output_stream);
-    //
-    qdag *Join_Result;
-    Join_Result = multiJoin(Q, false, 1000);
-    Join_Result->print(output_stream);
-    
+    //bit_vector iactive[] = {{0,1,0,0}, {0,0,1,1}, {0,1,0,1}, {0,0,1,0,0,1,0,0}, {0,0,0,1,1,0,0,1}};   
+    //vector<uint64_t> iactive[]={{1}, {2,3}, {1,3}, {2,5}, {3,4,7}};
+    //Q[0].Q->set_active(iactive);
+    //cout << "\nnuevo active \n";
+    //Q[0].print_active(output_stream);
+    //qdag *Join_Result;
+    //Join_Result = multiJoin(Q, false, 1000);
+    //Join_Result->print(output_stream);
+    semiJoin(Q, false, 1000);
+    Q[0].print(output_stream);
+    cout << endl;
+    vector<uint64_t> iactive={2,3};
+    //Q[0].Q->set_active_leaves(iactive);
+    //Q[0].print_active(output_stream);
     return 0;
 }

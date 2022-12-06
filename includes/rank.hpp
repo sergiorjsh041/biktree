@@ -98,6 +98,17 @@ class rank_bv_64
     {
         return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0xff);
     }
+
+    void print_4_bits(uint64_t start_pos)
+    {
+        uint8_t x = ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0x0f);
+
+        for (int l = 0; l < 4; l++)
+        {
+            cout << ((x & (1 << l)) ? "1" : "0");
+        }
+        cout << " ";
+    }
  
     // number of bits in the bv
     inline uint64_t size()

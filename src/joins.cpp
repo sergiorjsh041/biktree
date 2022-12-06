@@ -202,6 +202,8 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
     if (cur_level == max_level)
     {
+
+        cout << "last";
         for (i = 0; i < nQ && children; ++i)
         {
             //k_d[i] = Q[i]->getKD();
@@ -262,7 +264,6 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         {
             k_d[i] = Q[i]->getKD();
             if (nAtt == 3) {
-                cout << endl;
                 children &= Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i]);
             } else if (nAtt == 4)
                 children &= Q[i]->materialize_node_4(cur_level, roots[i], rank_vector[i]);
@@ -516,32 +517,32 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
     uint32_t children = 0xffffffff; // puros 1s
 
-    if (cur_level == max_level)
+    if (cur_level == max_level)// TODO: marcar hojas acá
     {
         for (i = 0; i < nQ && children; ++i)
         {
             //k_d[i] = Q[i]->getKD();
-            if (nAtt == 3)
-                children &= Q[i]->materialize_node_3_lastlevel(cur_level, roots[i]);
+            if (nAtt == 3){
+                children &= Q[i]->materialize_node_3_lastlevel(cur_level, roots[i]);//entero representando el nodo en el qdag, al hacer and eliminamos bits de children
+            }
             else if (nAtt == 4)
                 children &= Q[i]->materialize_node_4_lastlevel(cur_level, roots[i]);
             else if (nAtt == 5)
                 children &= Q[i]->materialize_node_5_lastlevel(cur_level, roots[i]);
         }
 
-        children_to_recurse_size = bits::cnt((uint64_t)children);
+        children_to_recurse_size = bits::cnt((uint64_t)children); //cuantos 1 hay en children
         i = 0;
         uint64_t msb;
 
         // todos los hijos son resultados
-        //TODO: hacer AND con active 
         while (/*children &&*/ i < children_to_recurse_size)
         {
             msb = __builtin_clz(children);
-            children_to_recurse[i] = msb;
+            children_to_recurse[i] = msb;//almacena pos de bit mas significativo de children
             ++i;
-            children &= (((uint32_t)0xffffffff) >> (msb + 1));
-        }
+            children &= (((uint32_t)0xffffffff) >> (msb + 1)); //shift para obtener el siguiente
+        }//obtenemos las posiciones de todos los 1 en children en tiempo proporcional a la cantidad de 1s
 
         int64_t last_child = -1;
         uint16_t child;
@@ -550,14 +551,19 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         {
             child = children_to_recurse[i];
 
-            if (child - last_child > 1)
-                last_pos[cur_level] += (child - last_child - 1);
+            if (child - last_child > 1) {
+                last_pos[cur_level] += (child - last_child - 1);// podria probar cambiando esto
+            }
 
             last_child = child;
             if (bounded_result && bv[max_level].size() >= UPPER_BOUND)
                 return false;
             else
             {
+
+                //cout << "esto hay en Q_0 hoja ";
+                //Q[0]->Q->bv[cur_level].print_4_bits(roots[0]);
+                //cout << endl;
                 bv[cur_level].push_back(last_pos[cur_level]++); //TODO: en vez de crear bv, cambiar active de qdag izquierdo
                 just_zeroes = false;
             }
@@ -568,6 +574,7 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
     }
     else
     {
+        // arreglo con raices que serán usadas en llamda recursiva
         uint64_t root_temp[16 /*nQ*/]; // CUIDADO, solo hasta 16 relaciones por query
         uint64_t rank_vector[16][64];
 
@@ -608,11 +615,11 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         {
 
             // hijo actual
-            child = children_to_recurse[i];
+            child = children_to_recurse[i];//cambiar por hijo de Q0?
 
             // obtener la raíz de cada qdag, dónde está en el quadtree
             for (uint64_t j = 0; j < nQ; j++)
-                root_temp[j] = k_d[j] * (rank_vector[j][Q[j]->getM(child)] - 1);
+                root_temp[j] = k_d[j] * (rank_vector[j][Q[j]->getM(child)] - 1);//hijo equivalente en el quadtree
 
             if (child - last_child > 1)
                 last_pos[cur_level] += (child - last_child - 1);
@@ -621,10 +628,15 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
             if (bounded_result && bv[max_level].size() >= UPPER_BOUND)
                 return false;
-            else if (cur_level == max_level || AND(Q, root_temp, nQ, cur_level + 1, max_level, bv, last_pos, nAtt, bounded_result, UPPER_BOUND))
+            else if (cur_level == max_level || SemiAND(Q, root_temp, nQ, cur_level + 1, max_level, bv, last_pos, nAtt, bounded_result, UPPER_BOUND))
             {
+                //cout << "esto hay en Q_0 nivel " << cur_level << " ";
+                //Q[0]->Q->bv[cur_level].print_4_bits(roots[0]);
+                //cout << "\n";
                 //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
                 bv[cur_level].push_back(last_pos[cur_level]++); //TODO: en vez de crear bv, cambiar active del qdag izq
+                
+                cout << cur_level << "    " << last_pos[cur_level] << endl;
                 just_zeroes = false;
             }
             else
@@ -798,7 +810,7 @@ qdag *multiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
 
     for (uint64_t i = 0; i < Q_star[0]->getHeight(); i++)
         last_pos[i] = 0;
-
+    
     AND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
 
     
@@ -910,16 +922,18 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
         Q_roots[i] = 0; // root of every qdag
     }
 
-    vector<uint64_t> bv[Q_star[0]->getHeight()]; // OJO, asume que todos los qdags son de la misma altura
-    uint64_t last_pos[Q_star[0]->getHeight()];
 
-    for (uint64_t i = 0; i < Q_star[0]->getHeight(); i++)
+    // para el semijoin bv debe ser igual a active
+    vector<uint64_t> bv[Q[0].getHeight()]; // OJO, asume que todos los qdags son de la misma altura
+    uint64_t last_pos[Q[0].getHeight()];
+
+    for (uint64_t i = 0; i < Q[0].getHeight(); i++)
         last_pos[i] = 0;
 
-    AND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
+    SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
 
     //BORRAR
-    //Q[0].Q->set_active(bv);
+    //Q[0].Q->set_active(bv);//CAMBIAR BV
 
     //qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
 }
