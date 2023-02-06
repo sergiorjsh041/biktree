@@ -489,14 +489,14 @@ public:
         }
     }
 
-    //void set_active(vector<uint64_t> _active[])//bit_vector _active[])//
-    //{
-    //    //active = new rank_bv_64[height];
-    //    for (uint64_t i = 0; i < height-1; i++)
-    //    {
-    //        active[i+1] = rank_bv_64(_active[i]);
-    //    }
-    //}
+    void set_active(vector<uint64_t> _active[])//bit_vector _active[])//
+    {
+        //active = new rank_bv_64[height];
+        for (uint64_t i = 1; i < height; i++)
+        {
+            active[i] = rank_bv_64(_active[i]);
+        }
+    }
 
     void print_active(std::ostream &ost)
     {
@@ -516,7 +516,7 @@ public:
                 if (j % dim == 0)
                 {
                     uint8_t x;
-                    x = +active[i].get_4_bits(j);
+                    x = +active[i].get_8_bits(j);
 
                     for (int l = 0; l < dim; l++)
                     {

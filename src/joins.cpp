@@ -203,7 +203,6 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
     if (cur_level == max_level)
     {
 
-        cout << "last";
         for (i = 0; i < nQ && children; ++i)
         {
             //k_d[i] = Q[i]->getKD();
@@ -312,7 +311,7 @@ bool AND(qdag *Q[], uint64_t *roots, uint16_t nQ,
                 //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
                 bv[cur_level].push_back(last_pos[cur_level]++);
                 just_zeroes = false;
-            }
+             }
             else
             {
                 if (cur_level < max_level)
@@ -501,7 +500,7 @@ bool parAND(uint16_t totalThreads, uint16_t threadId, uint16_t levelOfCut, std::
 
 bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
          uint16_t cur_level, uint16_t max_level,
-         vector<uint64_t> bv[], uint64_t last_pos[], uint64_t nAtt,
+         vector<uint64_t> active[], uint64_t last_pos[], uint64_t nAtt,
          bool bounded_result, uint64_t UPPER_BOUND)
 {
     uint64_t p = Q[0]->nChildren();
@@ -538,7 +537,8 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         // todos los hijos son resultados
         while (/*children &&*/ i < children_to_recurse_size)
         {
-            msb = __builtin_clz(children);
+            //Queremos obtener las posiciones correspondientes en Q[0] de los hijos, quitarle la dimensión del extend
+            msb = __builtin_clz(children);//count leading 0s
             children_to_recurse[i] = msb;//almacena pos de bit mas significativo de children
             ++i;
             children &= (((uint32_t)0xffffffff) >> (msb + 1)); //shift para obtener el siguiente
@@ -546,41 +546,42 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
         int64_t last_child = -1;
         uint16_t child;
+        uint16_t child_left_Q;
 
         for (i = 0; i < children_to_recurse_size; ++i)
         {
             child = children_to_recurse[i];
-
             if (child - last_child > 1) {
-                last_pos[cur_level] += (child - last_child - 1);// podria probar cambiando esto
+                last_pos[cur_level] += (child - last_child - 1);
+                // si la diferencia es mayor a 1, se debe agregar. Se resta 1 porque al hacer pushback se hace =
             }
 
+
             last_child = child;
-            if (bounded_result && bv[max_level].size() >= UPPER_BOUND)
+            if (bounded_result && active[max_level].size() >= UPPER_BOUND)
                 return false;
             else
             {
 
-                //cout << "esto hay en Q_0 hoja ";
-                //Q[0]->Q->bv[cur_level].print_4_bits(roots[0]);
-                //cout << endl;
-                bv[cur_level].push_back(last_pos[cur_level]++); //TODO: en vez de crear bv, cambiar active de qdag izquierdo
+                // obtener el bit del nodo
+                active[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level])); //al tiro pasa al siguiente puesto //TODO: en vez de crear bv, cambiar active de qdag izquierdo
+                last_pos[cur_level]++;
                 just_zeroes = false;
             }
         }
 
-        if (p - last_child > 1)
-            last_pos[cur_level] += (p - last_child - 1);
+         if  (p - last_child > 1) { // mover puntero al inicio del siguiente nodo
+             last_pos[cur_level] += (p - last_child - 1);
+         }//(p_left - last_child - 1); //
     }
     else
     {
         // arreglo con raices que serán usadas en llamda recursiva
         uint64_t root_temp[16 /*nQ*/]; // CUIDADO, solo hasta 16 relaciones por query
-        uint64_t rank_vector[16][64];
+        uint64_t rank_vector[16][64];;
 
         // pide el nodo actual de cada qdag (devuelve entero de 32 bits) y hace AND con children
         // sobreviven solo las ramas que tienen hijos en cada qdag
-        //TODO: hacer AND con active
         for (i = 0; i < nQ && children; ++i)
         {
             k_d[i] = Q[i]->getKD();
@@ -602,7 +603,7 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
         {
             // obtener el más significativo
             msb = __builtin_clz(children);
-            children_to_recurse[i] = msb; // baja por el más significativo
+            children_to_recurse[i] = msb;
             ++i;
             children &= (((uint32_t)0xffffffff) >> (msb + 1)); // borra el más significativo
         }
@@ -626,17 +627,14 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
             last_child = child;
 
-            if (bounded_result && bv[max_level].size() >= UPPER_BOUND)
+            if (bounded_result && active[max_level].size() >= UPPER_BOUND)
                 return false;
-            else if (cur_level == max_level || SemiAND(Q, root_temp, nQ, cur_level + 1, max_level, bv, last_pos, nAtt, bounded_result, UPPER_BOUND))
+            else if (cur_level == max_level || SemiAND(Q, root_temp, nQ, cur_level + 1, max_level, active, last_pos, nAtt, bounded_result, UPPER_BOUND))
             {
-                //cout << "esto hay en Q_0 nivel " << cur_level << " ";
-                //Q[0]->Q->bv[cur_level].print_4_bits(roots[0]);
-                //cout << "\n";
                 //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
-                bv[cur_level].push_back(last_pos[cur_level]++); //TODO: en vez de crear bv, cambiar active del qdag izq
-                
-                cout << cur_level << "    " << last_pos[cur_level] << endl;
+                active[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level]));
+                last_pos[cur_level]++;
+
                 just_zeroes = false;
             }
             else
@@ -931,9 +929,11 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
         last_pos[i] = 0;
 
     SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
-
+    for (uint64_t i = 0; i < Q[0].getHeight(); i++){
+        sort(bv[i].begin(), bv[i].end());
+    }
     //BORRAR
-    //Q[0].Q->set_active(bv);//CAMBIAR BV
+    Q[0].Q->set_active(bv);//CAMBIAR BV
 
     //qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
 }

@@ -275,7 +275,7 @@ class qdag
 
         uint16_t getM(uint16_t i)
         {
-            return M[i];        
+            return M[i];
         }
 
 
@@ -382,6 +382,14 @@ class qdag
         inline uint32_t materialize_node_5_lastlevel(uint64_t level, uint64_t node) {
             return tab_extend_5[Q->get_node_lastlevel(level, node)];
         }
+
+
+        uint64_t unextend_position(uint64_t position) {
+            uint64_t p = nChildren();
+            uint64_t p_original = Q->getKD();
+            uint64_t val = getM((position % p)) + (position / p) * p_original;
+            return val;
+        };
 
 
         void print(std::ostream &ost)

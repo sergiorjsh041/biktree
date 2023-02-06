@@ -87,22 +87,27 @@ int main(int argc, char** argv)
     cout << "\nderecha:\n";
     qdag_rel_S.print(output_stream);
 
-
+//1011011 01100010 00000100 01100110
+//0011011 11000001 01000100 01100110
+//0001001 11100101 01110100 01100110
     vector<qdag> Q(2);
 
     Q[0] = qdag_rel_R;
     Q[1] = qdag_rel_S;
+    //cout << qdag_rel_R.materialize_node_3_lastlevel(5,1);
 //0100, 0011, 0101, 0010 0100, 0001 1001
     //bit_vector iactive[] = {{0,1,0,0}, {0,0,1,1}, {0,1,0,1}, {0,0,1,0,0,1,0,0}, {0,0,0,1,1,0,0,1}};   
     //vector<uint64_t> iactive[]={{1}, {2,3}, {1,3}, {2,5}, {3,4,7}};
     //Q[0].Q->set_active(iactive);
     //cout << "\nnuevo active \n";
     //Q[0].print_active(output_stream);
-    //qdag *Join_Result;
-    //Join_Result = multiJoin(Q, false, 1000);
-    //Join_Result->print(output_stream);
+    qdag *Join_Result;
+    Join_Result = multiJoin(Q, false, 1000);
+    cout << "\n result:\n";
+    Join_Result->print(output_stream);
     semiJoin(Q, false, 1000);
-    Q[0].print(output_stream);
+    cout << "\n active:\n";
+    Q[0].print_active(output_stream);
     cout << endl;
     vector<uint64_t> iactive={2,3};
     //Q[0].Q->set_active_leaves(iactive);
