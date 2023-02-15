@@ -498,7 +498,7 @@ public:
             uint64_t total_diff = 0;
             vector<uint64_t> _active;
             diff = *active_set[i].begin() / k_d;
-            if (diff > 1) {
+            if (diff >= 1) {
                 total_diff += ((diff) * k_d);
             }
             _active.push_back(*active_set[i].begin() - total_diff);

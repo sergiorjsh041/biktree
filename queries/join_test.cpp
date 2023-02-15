@@ -101,16 +101,13 @@ int main(int argc, char** argv)
     //Q[0].Q->set_active(iactive);
     //cout << "\nnuevo active \n";
     //Q[0].print_active(output_stream);
-    qdag *Join_Result;
-    Join_Result = multiJoin(Q, false, 1000);
-    cout << "\n result:\n";
-    Join_Result->print(output_stream);
+    //qdag *Join_Result;
+    //Join_Result = multiJoin(Q, false, 1000);
+    //cout << "\n result:\n";
+    //Join_Result->print(output_stream);
     semiJoin(Q, false, 1000);
     cout << "\n active:\n";
-    Q[0].print_active(output_stream);
-    cout << endl;
-    vector<uint64_t> iactive={2,3};
-    //Q[0].Q->set_active_leaves(iactive);
     //Q[0].print_active(output_stream);
+    cout << endl;
     return 0;
 }
