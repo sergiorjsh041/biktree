@@ -26,6 +26,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <fstream>
+#include <set>
 #include <inttypes.h>
 #include <sdsl/bit_vectors.hpp>
 #include <sdsl/k2_tree_helper.hpp>
@@ -489,12 +490,28 @@ public:
         }
     }
 
-    void set_active(vector<uint64_t> _active[])//bit_vector _active[])//
+    void set_active(set<uint64_t> active_set[])//bit_vector _active[])//
     {
-        //active = new rank_bv_64[height];
+        uint64_t diff = 0;
         for (uint64_t i = 1; i < height; i++)
         {
-            active[i] = rank_bv_64(_active[i]);
+            uint64_t total_diff = 0;
+            vector<uint64_t> _active;
+            diff = *active_set[i].begin() / k_d;
+            if (diff > 1) {
+                total_diff += ((diff) * k_d);
+            }
+            _active.push_back(*active_set[i].begin() - total_diff);
+            for( set<uint64_t >::iterator iter=active_set[i].begin()++, prev=active_set[i].begin();
+                 iter != active_set[i].end(); prev=iter, ++iter )
+            {
+                diff = *iter / k_d - *prev / k_d;
+                if (diff > 1) {
+                    total_diff += ((diff - 1) * k_d);
+                }
+                _active.push_back(*iter - total_diff);
+            }
+            active[i] = rank_bv_64(_active);
         }
     }
 

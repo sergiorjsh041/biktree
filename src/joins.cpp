@@ -499,8 +499,7 @@ bool parAND(uint16_t totalThreads, uint16_t threadId, uint16_t levelOfCut, std::
 
 
 bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
-         uint16_t cur_level, uint16_t max_level,
-         vector<uint64_t> active[], uint64_t last_pos[], uint64_t nAtt,
+         uint16_t cur_level, uint16_t max_level, uint64_t last_pos[], set<uint64_t> active[], uint64_t nAtt,
          bool bounded_result, uint64_t UPPER_BOUND)
 {
     uint64_t p = Q[0]->nChildren();
@@ -564,7 +563,9 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
             {
 
                 // obtener el bit del nodo
-                active[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level])); //al tiro pasa al siguiente puesto //TODO: en vez de crear bv, cambiar active de qdag izquierdo
+                //active[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level])); //al tiro pasa al siguiente puesto //TODO: en vez de crear bv, cambiar active de qdag izquierdo
+                //active[cur_level].push_back(last_pos[cur_level]);
+                active[cur_level].insert(roots[0] + Q[0]->getM(last_pos[cur_level] % p));
                 last_pos[cur_level]++;
                 just_zeroes = false;
             }
@@ -629,10 +630,12 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
             if (bounded_result && active[max_level].size() >= UPPER_BOUND)
                 return false;
-            else if (cur_level == max_level || SemiAND(Q, root_temp, nQ, cur_level + 1, max_level, active, last_pos, nAtt, bounded_result, UPPER_BOUND))
+            else if (cur_level == max_level || SemiAND(Q, root_temp, nQ, cur_level + 1, max_level, last_pos, active, nAtt, bounded_result, UPPER_BOUND))
             {
                 //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
-                active[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level]));
+                //active[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level]));
+                //active[cur_level].push_back(last_pos[cur_level]);
+                active[cur_level].insert(roots[0] + Q[0]->getM(last_pos[cur_level] % p));
                 last_pos[cur_level]++;
 
                 just_zeroes = false;
@@ -924,16 +927,14 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
     // para el semijoin bv debe ser igual a active
     vector<uint64_t> bv[Q[0].getHeight()]; // OJO, asume que todos los qdags son de la misma altura
     uint64_t last_pos[Q[0].getHeight()];
+    set<uint64_t> active_set[Q[0].getHeight()];
 
     for (uint64_t i = 0; i < Q[0].getHeight(); i++)
         last_pos[i] = 0;
 
-    SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, bv, last_pos, A.size(), bounded_result, UPPER_BOUND);
-    for (uint64_t i = 0; i < Q[0].getHeight(); i++){
-        sort(bv[i].begin(), bv[i].end());
-    }
-    //BORRAR
-    Q[0].Q->set_active(bv);//CAMBIAR BV
 
+    SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, last_pos, active_set, A.size(), bounded_result, UPPER_BOUND);
+
+    Q[0].Q->set_active(active_set);
     //qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
 }
