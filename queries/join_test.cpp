@@ -92,16 +92,16 @@ int main(int argc, char** argv)
     qdag_rel_R.print(output_stream);
     cout << "\nderecha:\n";
     qdag_rel_S.print(output_stream);
-    qdag_rel_T.print(output_stream);
+    //qdag_rel_T.print(output_stream);
 
 //1011011 01100010 00000100 01100110
 //0011011 11000001 01000100 01100110
 //0001001 11100101 01110100 01100110
-    vector<qdag> Q(3);
+    vector<qdag> Q(2);//(3);
 
     Q[0] = qdag_rel_R;
     Q[1] = qdag_rel_S;
-    Q[2] = qdag_rel_T;
+    //Q[2] = qdag_rel_T;
 
     qdag *Join_Result;
     Join_Result = multiJoin(Q, false, 1000);
@@ -110,6 +110,10 @@ int main(int argc, char** argv)
     semiJoin(Q, false, 1000);
     cout << "\n active:\n";
     Q[0].print_active(output_stream);
+    auto a = Q[0].Q->active[5];
+    rank_bv_64 * pl = &a;
+    pl->print_4_bits(0);
+
     //cout << endl;
     return 0;
 }
