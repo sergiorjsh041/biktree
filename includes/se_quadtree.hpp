@@ -130,7 +130,7 @@ protected:
         bit_vector k_t_ = bit_vector(k_d, 0); // OJO, cuidado con esto
         // NOTA: se podrá usar esto en vez de rankbv para el bm de active?
         // create bit vector of size kd full of 1s, because at first all cells are active
-        bit_vector active_ = bit_vector(k_d, 0);
+        bit_vector active_ = bit_vector(k_d, 1);
 
         std::queue<t_part_tuple> q;
         idx_type t = 0, last_level = 0;
@@ -337,20 +337,21 @@ public:
         return bv[level].rank(node);
     }
 
-    inline uint8_t get_node_lastlevel(uint16_t level, uint64_t node)
+    inline uint8_t get_node_lastlevel(uint16_t level, uint64_t node, bool consider_active)
     {
         if (k_d == 4)
-            return bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
+            return bv[level].get_4_bits(node) & active[level].get_4_bits(node);
+            //return (consider_active) ? bv[level].get_4_bits(node) & active[level].get_4_bits(node) : bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
         else
-            return bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
+            return bv[level].get_2_bits(node) & active[level].get_2_bits(node);// (consider_active) ? bv[level].get_2_bits(node) & active[level].get_2_bits(node) : bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
     }
 
-    inline uint8_t get_node(uint16_t level, uint64_t node, uint64_t *rank_array, uint64_t rank_value)
+    inline uint8_t get_node(uint16_t level, uint64_t node, uint64_t *rank_array, uint64_t rank_value, bool consider_active)
     {
-        uint8_t nd = bv[level].get_4_bits(node);
+        uint8_t nd;
         if (k_d == 4)
         {
-            nd = bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
+            nd =  bv[level].get_4_bits(node) & active[level].get_4_bits(node);//(consider_active) ? bv[level].get_4_bits(node) & active[level].get_4_bits(node) : bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
             switch (nd)
             {
             case 0:
@@ -421,7 +422,7 @@ public:
         }
         else
         {
-            nd = bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
+            nd =  bv[level].get_2_bits(node) & active[level].get_2_bits(node);// (consider_active) ? bv[level].get_2_bits(node) & active[level].get_2_bits(node) : bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
             switch (nd)
             {
             case 0:
@@ -476,8 +477,8 @@ public:
                 // read each byte
                 if (j % dim == 0)
                 {
-                    uint8_t x;
-                    x = +bv[i].get_8_bits(j);
+                    uint64_t x;
+                    x = +bv[i].get_bits(j, dim);
 
                     for (int l = 0; l < dim; l++)
                     {

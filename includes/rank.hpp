@@ -121,6 +121,39 @@ class rank_bv_64
         }
         cout << " ";
     }
+
+    uint64_t get_bits(uint64_t start_pos, k2_tree_ns::size_type dim)
+    {
+
+        switch (dim){
+            case 2:
+                return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0x03);
+                break;
+            case 4:
+                return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0x0f);
+                break;
+            case 8:
+                return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0xff);
+                break;
+            case 16:
+                return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0xffff);
+                break;
+            case 32:
+
+                return((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0xffffffff);
+                break;
+
+        }
+        /*for (int l = 0; l < dim; l++)
+        {
+            cout << ((x & (1 << l)) ? "1" : "0");
+        }
+        cout << " ";*/
+    }
+
+    void bv_and(rank_bv_64 bv){
+        seq[0] &= *bv.seq;
+    }
  
     // number of bits in the bv
     inline uint64_t size()

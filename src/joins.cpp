@@ -498,9 +498,9 @@ bool parAND(uint16_t totalThreads, uint16_t threadId, uint16_t levelOfCut, std::
 */
 
 
-bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
-         uint16_t cur_level, uint16_t max_level, uint64_t last_pos[], uint64_t nAtt,
-         bool bounded_result, uint64_t UPPER_BOUND)
+bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
+             uint16_t cur_level, uint16_t max_level, uint64_t *last_pos, uint64_t nAtt,
+             bool bounded_result, uint64_t UPPER_BOUND, vector<rank_bv_64> temp_bv)
 {
     uint64_t p = Q[0]->nChildren();
     bool result = false;
@@ -566,7 +566,8 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
                 //active_s[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level])); //al tiro pasa al siguiente puesto //TODO: en vez de crear bv, cambiar active_s de qdag izquierdo
                 //active_s[cur_level].push_back(last_pos[cur_level]);
                 uint64_t mask_one =1;
-                *Q[0]->Q->active[cur_level].seq |= (mask_one << (roots[0] + Q[0]->getM(last_pos[cur_level] % p)));
+                //*Q[0]->Q->active[cur_level].seq |= (mask_one << (roots[0] + Q[0]->getM(last_pos[cur_level] % p)));
+                *(temp_bv[cur_level].seq) = (*(temp_bv[cur_level]).seq | (mask_one << (roots[0] + Q[0]->getM(last_pos[cur_level] % p))));
                 //active_s[cur_level].insert(roots[0] + Q[0]->getM(last_pos[cur_level] % p));
                 last_pos[cur_level]++;
                 just_zeroes = false;
@@ -632,13 +633,14 @@ bool SemiAND(qdag *Q[], uint64_t *roots, uint16_t nQ,
 
             if (bounded_result)// && active_s[max_level].size() >= UPPER_BOUND) TODO: fix bounded result
                 return false;
-            else if (cur_level == max_level || SemiAND(Q, root_temp, nQ, cur_level + 1, max_level, last_pos, nAtt, bounded_result, UPPER_BOUND))
+            else if (cur_level == max_level || SemiAND(Q, root_temp, nQ, cur_level + 1, max_level, last_pos, nAtt, bounded_result, UPPER_BOUND, temp_bv))
             {
                 //si se llega al último nivel o si hay resultados en el subárbol, se pone un 1 en la posición para indicar que hay resultados
                 //active_s[cur_level].push_back(Q[0]->unextend_position(last_pos[cur_level]));
                 //active_s[cur_level].push_back(last_pos[cur_level]);
                 uint64_t mask_one =1;
-                *Q[0]->Q->active[cur_level].seq |= (mask_one << (roots[0] + Q[0]->getM(last_pos[cur_level] % p)));
+                //*Q[0]->Q->active[cur_level].seq |= (mask_one << (roots[0] + Q[0]->getM(last_pos[cur_level] % p)));
+                *(temp_bv[cur_level]).seq = ( *(temp_bv[cur_level]).seq | (mask_one << (roots[0] + Q[0]->getM(last_pos[cur_level] % p))));
                 //active_s[cur_level].insert(roots[0] + Q[0]->getM(last_pos[cur_level] % p));
                 last_pos[cur_level]++;
 
@@ -935,9 +937,20 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
     for (uint64_t i = 0; i < Q[0].getHeight(); i++)
         last_pos[i] = 0;
 
+    //TODO: create temp active of 0s
+    bit_vector blank = bit_vector(4, 0);
+    vector<rank_bv_64> temp(Q[0].getHeight());
+    for (int i = 0; i <= Q[0].getHeight(); i++ ) {
+        temp[i] = rank_bv_64(blank);
+    }
+    SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, last_pos, A.size(), bounded_result, UPPER_BOUND, temp);
 
-    SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, last_pos, A.size(), bounded_result, UPPER_BOUND);
+    Q_star[0]->consider_active = true;
 
-    //Q[0].Q->set_active(active_set);
+    //TODO: delete temp active
+    //TODO: refactor into Qdag and quadtree
+    for (int i = 1; i<Q[0].getHeight();i++){
+        Q[0].Q->active[i].bv_and(temp[i]);
+    }
     //qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
 }
