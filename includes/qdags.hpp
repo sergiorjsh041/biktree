@@ -51,7 +51,6 @@ class qdag
 
         qdag() = default;
 
-        bool        consider_active;
 
         uint64_t size()
 	{
@@ -82,7 +81,6 @@ class qdag
             this->grid_side = _Q.grid_side;
 	    this->Msize = _Q.Msize;
 	    this->is_extended_qdag = _Q.is_extended_qdag;
-        this->consider_active = _Q.consider_active;
 
 	}
 
@@ -129,7 +127,6 @@ class qdag
            
            grid_side = _grid_side;
            is_extended_qdag = false;
-           consider_active = false;
            
            //M_prime.reserve(Msize);
 
@@ -161,7 +158,6 @@ class qdag
            //std::sort(attribute_set.begin(), attribute_set.end());            
            grid_side = _grid_side;
            is_extended_qdag = false;
-           consider_active = false;
  
            //M_prime.reserve(Msize);
            
@@ -358,43 +354,36 @@ class qdag
 
         inline uint32_t materialize_node_3(uint64_t level, uint64_t node, uint64_t* rank_vector) {
             uint64_t r = Q->rank(level, node);
-            return tab_extend_3[Q->get_node(level, node, rank_vector, r, consider_active)];
+            return tab_extend_3[Q->get_node(level, node, rank_vector, r)];
         }
 
 
         inline uint32_t materialize_node_4(uint64_t level, uint64_t node, uint64_t* rank_vector) {
             uint64_t r = Q->rank(level, node);
-            return tab_extend_4[Q->get_node(level, node, rank_vector, r, consider_active)];
+            return tab_extend_4[Q->get_node(level, node, rank_vector, r)];
         }
 
 
         inline uint32_t materialize_node_5(uint64_t level, uint64_t node, uint64_t* rank_vector) {
             uint64_t r = Q->rank(level, node);            
-            return tab_extend_5[Q->get_node(level, node, rank_vector, r, consider_active)];
+            return tab_extend_5[Q->get_node(level, node, rank_vector, r)];
         }
 
 
         inline uint32_t materialize_node_3_lastlevel(uint64_t level, uint64_t node) {
-            return tab_extend_3[Q->get_node_lastlevel(level, node, consider_active)];
+            return tab_extend_3[Q->get_node_lastlevel(level, node)];
         }
 
 
         inline uint32_t materialize_node_4_lastlevel(uint64_t level, uint64_t node) {
-            return tab_extend_4[Q->get_node_lastlevel(level, node, consider_active)];
+            return tab_extend_4[Q->get_node_lastlevel(level, node)];
         }
        
 
         inline uint32_t materialize_node_5_lastlevel(uint64_t level, uint64_t node) {
-            return tab_extend_5[Q->get_node_lastlevel(level, node, consider_active)];
+            return tab_extend_5[Q->get_node_lastlevel(level, node)];
         }
 
-
-        uint64_t unextend_position(uint64_t position) {
-            uint64_t p = nChildren();
-            uint64_t p_original = Q->getKD();
-            uint64_t val = getM((position % p)) + (position / p) * p_original;
-            return val;
-        };
 
 
         void print(std::ostream &ost)

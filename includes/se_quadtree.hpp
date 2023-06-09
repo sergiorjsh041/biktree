@@ -337,21 +337,21 @@ public:
         return bv[level].rank(node);
     }
 
-    inline uint8_t get_node_lastlevel(uint16_t level, uint64_t node, bool consider_active)
+    inline uint8_t get_node_lastlevel(uint16_t level, uint64_t node)
     {
         if (k_d == 4)
-            return bv[level].get_4_bits(node) & active[level].get_4_bits(node);
-            //return (consider_active) ? bv[level].get_4_bits(node) & active[level].get_4_bits(node) : bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
+            return bv[level].get_4_bits(node);
         else
-            return bv[level].get_2_bits(node) & active[level].get_2_bits(node);// (consider_active) ? bv[level].get_2_bits(node) & active[level].get_2_bits(node) : bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
+            return bv[level].get_2_bits(node);
     }
 
-    inline uint8_t get_node(uint16_t level, uint64_t node, uint64_t *rank_array, uint64_t rank_value, bool consider_active)
+    inline uint8_t get_node(uint16_t level, uint64_t node, uint64_t *rank_array, uint64_t rank_value)
     {
         uint8_t nd;
         if (k_d == 4)
         {
-            nd =  bv[level].get_4_bits(node) & active[level].get_4_bits(node);//(consider_active) ? bv[level].get_4_bits(node) & active[level].get_4_bits(node) : bv[level].get_4_bits(node) ;//& active[level].get_4_bits(node);
+            //TODO: hacer & ! active[node] para eliminar los hijos ya marcados
+            nd =  bv[level].get_4_bits(node);
             switch (nd)
             {
             case 0:
@@ -422,7 +422,7 @@ public:
         }
         else
         {
-            nd =  bv[level].get_2_bits(node) & active[level].get_2_bits(node);// (consider_active) ? bv[level].get_2_bits(node) & active[level].get_2_bits(node) : bv[level].get_2_bits(node) ;//& active[level].get_2_bits(node);
+            nd =  bv[level].get_2_bits(node) ;
             switch (nd)
             {
             case 0:
@@ -491,31 +491,6 @@ public:
         }
     }
 
-    void set_active(set<uint64_t> active_set[])//bit_vector _active[])//
-    {
-        uint64_t diff = 0;
-        for (uint64_t i = 1; i < height; i++)
-        {
-            uint64_t total_diff = 0;
-            vector<uint64_t> _active;
-            diff = *active_set[i].begin() / k_d;
-            if (diff >= 1) {
-                total_diff += ((diff) * k_d);
-            }
-            _active.push_back(*active_set[i].begin() - total_diff);
-            for( set<uint64_t >::iterator iter=active_set[i].begin()++, prev=active_set[i].begin();
-                 iter != active_set[i].end(); prev=iter, ++iter )
-            {
-                diff = *iter / k_d - *prev / k_d;
-                if (diff > 1) {
-                    total_diff += ((diff - 1) * k_d);
-                }
-                _active.push_back(*iter - total_diff);
-            }
-            active[i] = rank_bv_64(_active);
-        }
-    }
-
     void print_active(std::ostream &ost)
     {
         size_type dim = pow(k, d);
@@ -548,5 +523,3 @@ public:
     }
 };
 #endif
-// Figura 1:0100 0010 0010 1000 0010 1111 0100 0110
-//          0100 0010 0010 1000 0010 1111 0100 0110
