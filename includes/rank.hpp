@@ -80,7 +80,7 @@ class rank_bv_64
 
     inline uint64_t rank(uint64_t i) 
     {
-        return block[i>>6] + bits::cnt(seq[i>>6] & ~(0xffffffffffffffff << (i&0x3f)));  
+        return block[i>>6] + bits::cnt(seq[i>>6] & ~(0xffffffffffffffff << (i&0x3f)));
     }
 
     inline uint8_t get_4_bits(uint64_t start_pos)
@@ -88,7 +88,7 @@ class rank_bv_64
         //toma la seq, toma el bloque al cual pertenece la posicion, luego lo desplaza hacia la derecha start_pos%64, dentro del bloque y toma los último 4 bits.
         return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0x0f);
     }
-   
+
     inline uint8_t get_2_bits(uint64_t start_pos)
     {
         return ((seq[start_pos >> 6] >>(start_pos & 0x3f) ) & 0x03);

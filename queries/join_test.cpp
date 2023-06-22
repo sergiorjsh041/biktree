@@ -62,22 +62,26 @@ int main(int argc, char** argv)
 {
     qdag::att_set att_R;
     qdag::att_set att_S;
-    qdag::att_set att_T;
+    //qdag::att_set att_T;
+    //qdag::att_set att_Q;
 
     att_R.push_back(AT_X1); att_R.push_back(AT_X2);
     att_S.push_back(AT_X2); att_S.push_back(AT_X3);
-    att_T.push_back(AT_X1); att_T.push_back(AT_X4);
+    //att_T.push_back(AT_X1); att_T.push_back(AT_X2);att_T.push_back(AT_X3);
+    //att_Q.push_back(AT_X2); att_Q.push_back(AT_X3);att_Q.push_back(AT_X1);
 
-    std::string strRel_R(argv[1]), strRel_S(argv[2]), strRel_T(argv[3]);
+    std::string strRel_R(argv[1]), strRel_S(argv[2]);//, strRel_T(argv[3]), strRel_Q(argv[4]);
     std::vector<std::vector<uint64_t>>* rel_R = read_relation(strRel_R, att_R.size());
     std::vector<std::vector<uint64_t>>* rel_S = read_relation(strRel_S, att_S.size());
-    std::vector<std::vector<uint64_t>>* rel_T = read_relation(strRel_T, att_T.size());
+    //std::vector<std::vector<uint64_t>>* rel_T = read_relation(strRel_T, att_T.size());
+    //std::vector<std::vector<uint64_t>>* rel_Q = read_relation(strRel_Q, att_Q.size());
 
     uint64_t grid_side = 32;
 
     grid_side = maximum_in_table(*rel_R, att_R.size(), grid_side);
     grid_side = maximum_in_table(*rel_S, att_S.size(), grid_side);
-    grid_side = maximum_in_table(*rel_T, att_T.size(), grid_side);
+    //grid_side = maximum_in_table(*rel_T, att_T.size(), grid_side);
+    //grid_side = maximum_in_table(*rel_Q, att_Q.size(), grid_side);
 
     grid_side++;
 
@@ -85,14 +89,19 @@ int main(int argc, char** argv)
 
     qdag qdag_rel_R(*rel_R, att_R, grid_side, 2, att_R.size());
     qdag qdag_rel_S(*rel_S, att_S, grid_side, 2, att_S.size());
-    qdag qdag_rel_T(*rel_T, att_T, grid_side, 2, att_T.size());
+    //qdag qdag_rel_T(*rel_T, att_T, grid_side, 2, att_T.size());
+    //qdag qdag_rel_Q(*rel_Q, att_Q, grid_side, 2, att_Q.size());
 
     std::ostream &output_stream = cout;
     cout << "izquierda:\n";
     qdag_rel_R.print(output_stream);
     cout << "\nderecha:\n";
     qdag_rel_S.print(output_stream);
-    qdag_rel_T.print(output_stream);
+    cout << endl;
+    //qdag_rel_T.print(output_stream);
+
+    cout << endl;
+    //qdag_rel_Q.print(output_stream);
 
     vector<qdag> Q(2);
 
@@ -108,18 +117,18 @@ int main(int argc, char** argv)
     cout << "\n active:\n";
     Q[0].print_active(output_stream);
 
-    vector<qdag> Q_pt2(2);
+    //vector<qdag> Q_pt2(2);
 
-    Q_pt2[0] = qdag_rel_R;
-    Q_pt2[1] = qdag_rel_T;
+    //Q_pt2[0] = qdag_rel_R;
+    //Q_pt2[1] = qdag_rel_T;
 
     //qdag *Join_Result2;
     //Join_Result2 = multiJoin(Q_pt2, false, 1000);
     //cout << "\n result:\n";
     //Join_Result2->print(output_stream);
-    semiJoin(Q_pt2, false, 1000);
-    cout << "\n active:\n";
-    Q_pt2[0].print_active(output_stream);
+    //semiJoin(Q_pt2, false, 1000);
+    //cout << "\n active:\n";
+    //Q_pt2[0].print_active(output_stream);
     //Q_pt2[0].print(output_stream);
 
     return 0;

@@ -2,13 +2,70 @@
 #include "qdags.hpp"
 
 void tobinary(unsigned number){
-    if (number > 1)
+    if (number > 1){
         tobinary(number/2);
+    }
     cout << number % 2;
 }
 
 
-void propagate_active(vector<rank_bv_64>){
+bool propagate_active(qdag* Q, uint16_t cur_level, uint16_t max_level, vector<rank_bv_64> temp_bv, uint64_t node){
+    bool has_childs = false;
+    uint32_t children;
+    if (cur_level == max_level){
+        //caso base: hay un 1 en un nodo hoja de active
+        if (temp_bv[cur_level].get_bits(node, Q->getKD()) != 0){
+            has_childs = true;
+        }
+
+    }
+    else{
+        //caso recursivo: debo revisar si hay 1s en el nivel inferior, hijo por hijo
+        uint64_t root_temp;
+        uint64_t rank_vector[64];
+
+        uint64_t r = Q->Q->rank(cur_level, node);
+        children = Q->Q->get_node(cur_level, node, rank_vector, r);
+        uint64_t k_d = Q->getKD();
+
+
+        // por cuántos hijos voy a bajar, cuenta la cantitdad de 1s en un arreglo de bits/entero
+        uint64_t children_to_recurse_size = bits::cnt((uint64_t)children);
+        uint64_t i = 0;
+        uint64_t msb;
+        uint16_t children_to_recurse[512];
+
+        // obtener todos los hijos
+        while (i < children_to_recurse_size)
+        {
+            // obtener el más significativo
+            msb = __builtin_clz(children);
+            children_to_recurse[i] = 31 - msb;
+            ++i;
+            children &= (((uint32_t)0xffffffff) >> (msb + 1)); // borra el más significativo
+        }
+
+        uint16_t child;
+
+        // bajar por todos los hijos marcados
+        for (i = 0; i < children_to_recurse_size; ++i)
+        {
+
+            // hijo actual
+            child = children_to_recurse[i];
+
+            root_temp = k_d * (rank_vector[child]-1);
+
+            if (propagate_active(Q, cur_level + 1, max_level, temp_bv, root_temp)){
+                uint64_t mask_one = 1 << (node + child);
+                *(temp_bv[cur_level]).seq = ( *(temp_bv[cur_level]).seq | (mask_one));
+                has_childs = true;
+                }
+
+            }
+    }
+
+    return has_childs;
 
 }
 
@@ -523,11 +580,10 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
 
     //cout << endl << "semiand " << cur_level << "/" << max_level << endl;
     //cout << "roots " << roots[0] << " " <<  roots[1] << endl;
-    if (cur_level == max_level)// TODO: marcar hojas acá
+    if (cur_level == max_level)
     {
         for (i = 0; i < nQ && children; ++i)
         {
-            //k_d[i] = Q[i]->getKD();
             if (nAtt == 3){
                 children &= Q[i]->materialize_node_3_lastlevel(cur_level, roots[i]);//entero representando el nodo en el qdag, al hacer and eliminamos bits de children
             }
@@ -536,11 +592,11 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
             else if (nAtt == 5)
                 children &= Q[i]->materialize_node_5_lastlevel(cur_level, roots[i]);
         }
-
+        cout << cur_level << "    " << std::bitset<32>(children).to_string()<< endl;
         children_to_recurse_size = bits::cnt((uint64_t)children); //cuantos 1 hay en children
         i = 0;
         uint64_t msb;
-        //cout << "children last level " << children_to_recurse_size << endl ;
+
 
         // todos los hijos son resultados
         while (/*children &&*/ i < children_to_recurse_size)
@@ -587,24 +643,25 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
     {
         // arreglo con raices que serán usadas en llamda recursiva
         uint64_t root_temp[16 /*nQ*/]; // CUIDADO, solo hasta 16 relaciones por query
-        uint64_t rank_vector[16][64];;
+        uint64_t rank_vector[16][64];
 
         // pide el nodo actual de cada qdag (devuelve entero de 32 bits) y hace AND con children
         // sobreviven solo las ramas que tienen hijos en cada qdag
-        for (i = 0; i < nQ && children; ++i)
+        //children &= 4278190080;
+        children &= Q[0]->materialize_node_3(cur_level, roots[0], rank_vector[0]);
+        k_d[0] = Q[0]->getKD();
+
+        for (i = 1; i < nQ && children; ++i)
         {
             k_d[i] = Q[i]->getKD();
             if (nAtt == 3) {
                 children &= Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i]);
-                if (cur_level == max_level - 1) {
-                    //cout << "Q" << i << " node" << roots[i] << "\t";
-                    //cout << std::bitset<64>(Q[i]->materialize_node_3(cur_level, roots[i], rank_vector[i])) << endl;
-                }
             } else if (nAtt == 4)
                 children &= Q[i]->materialize_node_4(cur_level, roots[i], rank_vector[i]);
             else if (nAtt == 5)
                 children &= Q[i]->materialize_node_5(cur_level, roots[i], rank_vector[i]);
         }
+        cout << cur_level << "    " << std::bitset<32>(children).to_string()<< endl;
 
         // por cuántos hijos voy a bajar, cuenta la cantitdad de 1s en un arreglo de bits/entero
         children_to_recurse_size = bits::cnt((uint64_t)children);
@@ -631,7 +688,7 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
         {
 
             // hijo actual
-            child = children_to_recurse[i];//cambiar por hijo de Q0?
+            child = children_to_recurse[i];
 
             // obtener la raíz de cada qdag, dónde está en el quadtree
             for (uint64_t j = 0; j < nQ; j++)
@@ -653,6 +710,7 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
 
                 if (temp_children == leftQ_children){
                     uint64_t mask_one =1;
+                    cout << "mark active" << endl;
                     *(temp_bv[cur_level]).seq = ( *(temp_bv[cur_level]).seq | (mask_one << (roots[0] + Q[0]->getM(last_pos[cur_level] % p))));
                 }
                 last_pos[cur_level]++;
@@ -667,8 +725,9 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
             }
         }
 
-        if (p - last_child > 1)
+        if (p - last_child > 1) {
             last_pos[cur_level] += (p - last_child - 1);
+        }
     }
 
     return !just_zeroes;
@@ -955,14 +1014,17 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
     for (int i = 0; i <= Q[0].getHeight(); i++ ) {
         temp[i] = rank_bv_64(blank);
     }
+
     SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, last_pos, A.size(), bounded_result, UPPER_BOUND, temp);
+    cout << "termine el semiand pupi" << endl;
 
     //TODO: propagar los 1s somehow y somewhere
     //bajar por temp recursivamente, si hay un 1 en el nodo hijo, marcar padre
+    propagate_active(Q_star[0], 1, Q_star[0]->getHeight() - 1, temp, 0);
 
     // actualizar bv izquierdo
     for (int i = 1; i<Q[0].getHeight(); i++){
         Q[0].Q->active[i].bv_and(temp[i]);
     }
-    //qdag *qResult = new qdag(bv, A, Q_star[0]->getGridSide(), Q_star[0]->getK(), (uint8_t)A.size());
+
 }

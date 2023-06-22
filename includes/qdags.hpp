@@ -28,6 +28,9 @@ class qdag
         
         typedef vector<uint64_t> att_set;
         se_quadtree* Q;
+        int32_t tab_extend_5[16];   // queries of 5 attributes, i.e., dimension 2^5=32
+    int32_t tab_extend_4[16];
+    int32_t tab_extend_3[16];
 
 	 private:
 	            
@@ -43,9 +46,7 @@ class qdag
         
         vector<vector<type_mapping_M>*> M_prime;
 
-        int32_t tab_extend_5[16];   // queries of 5 attributes, i.e., dimension 2^5=32
-        int32_t tab_extend_4[16];
-        int32_t tab_extend_3[16];
+
 
     public:
 
@@ -355,6 +356,14 @@ class qdag
         inline uint32_t materialize_node_3(uint64_t level, uint64_t node, uint64_t* rank_vector) {
             uint64_t r = Q->rank(level, node);
             return tab_extend_3[Q->get_node(level, node, rank_vector, r)];
+        }
+
+
+        inline uint32_t materialize_active_node_3(uint64_t level, uint64_t node, vector<rank_bv_64> tactive, uint64_t* rank_vector) {
+            auto bits = Q->get_node_active(level, node, tactive, rank_vector, 0);
+            cout << std::bitset<4>(bits).to_string() << endl;
+            cout << std::bitset<32>(tab_extend_3[bits]).to_string() << endl;
+            return tab_extend_3[bits];
         }
 
 
