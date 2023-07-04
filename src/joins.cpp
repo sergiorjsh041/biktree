@@ -10,16 +10,17 @@ void tobinary(unsigned number){
 
 
 bool propagate_active(qdag* Q, uint16_t cur_level, uint16_t max_level, vector<rank_bv_64> temp_bv, uint64_t node){
-    bool has_childs = false;
+    bool has_children = false;
     uint32_t children;
     if (cur_level == max_level){
         //caso base: hay un 1 en un nodo hoja de active
         if (temp_bv[cur_level].get_bits(node, Q->getKD()) != 0){
-            has_childs = true;
+            has_children = true;
         }
 
     }
     else{
+
         //caso recursivo: debo revisar si hay 1s en el nivel inferior, hijo por hijo
         uint64_t root_temp;
         uint64_t rank_vector[64];
@@ -59,13 +60,13 @@ bool propagate_active(qdag* Q, uint16_t cur_level, uint16_t max_level, vector<ra
             if (propagate_active(Q, cur_level + 1, max_level, temp_bv, root_temp)){
                 uint64_t mask_one = 1 << (node + child);
                 *(temp_bv[cur_level]).seq = ( *(temp_bv[cur_level]).seq | (mask_one));
-                has_childs = true;
+                has_children = true;
                 }
 
             }
     }
 
-    return has_childs;
+    return has_children;
 
 }
 
@@ -578,8 +579,6 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
 
     uint32_t children = 0xffffffff; // puros 1s
 
-    //cout << endl << "semiand " << cur_level << "/" << max_level << endl;
-    //cout << "roots " << roots[0] << " " <<  roots[1] << endl;
     if (cur_level == max_level)
     {
         for (i = 0; i < nQ && children; ++i)
@@ -592,7 +591,7 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
             else if (nAtt == 5)
                 children &= Q[i]->materialize_node_5_lastlevel(cur_level, roots[i]);
         }
-        cout << cur_level << "    " << std::bitset<32>(children).to_string()<< endl;
+        // cout << cur_level << "    " << std::bitset<32>(children).to_string()<< endl;
         children_to_recurse_size = bits::cnt((uint64_t)children); //cuantos 1 hay en children
         i = 0;
         uint64_t msb;
@@ -647,11 +646,9 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
 
         // pide el nodo actual de cada qdag (devuelve entero de 32 bits) y hace AND con children
         // sobreviven solo las ramas que tienen hijos en cada qdag
-        //children &= 4278190080;
-        children &= Q[0]->materialize_node_3(cur_level, roots[0], rank_vector[0]);
         k_d[0] = Q[0]->getKD();
 
-        for (i = 1; i < nQ && children; ++i)
+        for (i = 0; i < nQ && children; ++i)
         {
             k_d[i] = Q[i]->getKD();
             if (nAtt == 3) {
@@ -661,12 +658,12 @@ bool SemiAND(qdag **Q, uint64_t *roots, uint16_t nQ,
             else if (nAtt == 5)
                 children &= Q[i]->materialize_node_5(cur_level, roots[i], rank_vector[i]);
         }
-        cout << cur_level << "    " << std::bitset<32>(children).to_string()<< endl;
+        // TODO: count number of children before and after pruning to check if the optimization is being used
+        // todo: hay que hacerlo segun n att
+        children &= Q[0]->materialize_active_node_3(cur_level, roots[0], temp_bv);
 
         // por cuántos hijos voy a bajar, cuenta la cantitdad de 1s en un arreglo de bits/entero
         children_to_recurse_size = bits::cnt((uint64_t)children);
-        //cout << "children " << children_to_recurse_size << endl;
-        //cout << std::bitset<64>(children) << endl;
         i = 0;
         uint64_t msb;
 
@@ -1011,14 +1008,12 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
     // create temp active of 0s
     bit_vector blank = bit_vector(4, 0);
     vector<rank_bv_64> temp(Q[0].getHeight());
-    for (int i = 0; i <= Q[0].getHeight(); i++ ) {
+    for (int i = 0; i < Q[0].getHeight(); i++ ) {
         temp[i] = rank_bv_64(blank);
     }
 
     SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, last_pos, A.size(), bounded_result, UPPER_BOUND, temp);
-    cout << "termine el semiand pupi" << endl;
 
-    //TODO: propagar los 1s somehow y somewhere
     //bajar por temp recursivamente, si hay un 1 en el nodo hijo, marcar padre
     propagate_active(Q_star[0], 1, Q_star[0]->getHeight() - 1, temp, 0);
 

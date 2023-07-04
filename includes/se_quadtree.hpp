@@ -313,8 +313,9 @@ public:
     ~se_quadtree()
     {
         ref_count--;
-        if (ref_count == 0)
+        if (ref_count == 0) {
             delete[] bv;
+        }
     }
 
     void inc_ref_count()
@@ -442,33 +443,16 @@ public:
         return nd;
     }
 
-    inline uint8_t get_node_active(uint16_t level, uint64_t node, vector<rank_bv_64> tactive, uint64_t *rank_array, uint64_t rank_value)
+    inline uint8_t get_node_active(uint16_t level, uint64_t node, vector<rank_bv_64> tactive)
     {
         uint8_t nd;
         if (k_d == 4)
         {
-            //TODO: hacer & ! active[node] para eliminar los hijos ya marcados
-            nd = ((~(tactive[level].get_4_bits(node)) & 0x0f));
-
+            nd = (~(tactive[level].get_4_bits(node)) & 0x0f);
         }
         else
         {
-            nd =  bv[level].get_2_bits(node) ;
-            switch (nd)
-            {
-                case 0:
-                    break;
-                case 1:
-                    rank_array[0] = rank_value + 1;
-                    break;
-                case 2:
-                    rank_array[1] = rank_value + 1;
-                    break;
-                case 3:
-                    rank_array[0] = rank_value + 1;
-                    rank_array[1] = rank_value + 2;
-                    break;
-            }
+            nd = (~(tactive[level].get_2_bits(node)) & 0x04);
         }
 
         return nd;
