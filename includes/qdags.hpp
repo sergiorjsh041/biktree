@@ -359,11 +359,6 @@ class qdag
         }
 
 
-        inline uint32_t materialize_active_node_3(uint64_t level, uint64_t node, vector<rank_bv_64> tactive) {
-            return tab_extend_3[Q->get_node_active(level, node, tactive)];
-        }
-
-
         inline uint32_t materialize_node_4(uint64_t level, uint64_t node, uint64_t* rank_vector) {
             uint64_t r = Q->rank(level, node);
             return tab_extend_4[Q->get_node(level, node, rank_vector, r)];
@@ -388,6 +383,21 @@ class qdag
 
         inline uint32_t materialize_node_5_lastlevel(uint64_t level, uint64_t node) {
             return tab_extend_5[Q->get_node_lastlevel(level, node)];
+        }
+
+
+        inline uint32_t materialize_active_node_3(uint64_t level, uint64_t node, vector<rank_bv_64> temp_active) {
+            return tab_extend_3[Q->get_node_active(level, node, temp_active)];
+        }
+
+
+        inline uint32_t materialize_active_node_4(uint64_t level, uint64_t node, vector<rank_bv_64> temp_active) {
+            return tab_extend_4[Q->get_node_active(level, node, temp_active)];
+        }
+
+
+        inline uint32_t materialize_active_node_5(uint64_t level, uint64_t node, vector<rank_bv_64> temp_active) {
+            return tab_extend_3[Q->get_node_active(level, node, temp_active)];
         }
 
 

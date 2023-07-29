@@ -340,18 +340,22 @@ public:
 
     inline uint8_t get_node_lastlevel(uint16_t level, uint64_t node)
     {
-        if (k_d == 4)
-            return bv[level].get_4_bits(node);
+        if (k_d == 4){
+        uint8_t a = bv[level].get_4_bits(node) & active[level].get_4_bits(node);
+            return a;
+        }
         else
-            return bv[level].get_2_bits(node);
+            return bv[level].get_2_bits(node) & active[level].get_2_bits(node);
     }
 
     inline uint8_t get_node(uint16_t level, uint64_t node, uint64_t *rank_array, uint64_t rank_value)
     {
         uint8_t nd;
+        uint8_t nd_active;
         if (k_d == 4)
         {
-            nd =  bv[level].get_4_bits(node);
+            nd = bv[level].get_4_bits(node);
+            nd_active = active[level].get_4_bits(node);
             switch (nd)
             {
             case 0:
@@ -422,7 +426,8 @@ public:
         }
         else
         {
-            nd =  bv[level].get_2_bits(node) ;
+            nd = bv[level].get_2_bits(node);
+            nd_active = active[level].get_2_bits(node);
             switch (nd)
             {
             case 0:
@@ -440,7 +445,7 @@ public:
             }
         }
 
-        return nd;
+        return nd & nd_active;
     }
 
     inline uint8_t get_node_active(uint16_t level, uint64_t node, vector<rank_bv_64> tactive)
