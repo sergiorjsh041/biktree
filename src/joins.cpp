@@ -1019,7 +1019,6 @@ void semiJoin(vector<qdag> &Q, bool bounded_result, uint64_t UPPER_BOUND)
 
     SemiAND(Q_star, Q_roots, Q.size(), 0, Q_star[0]->getHeight() - 1, last_pos, A.size(), bounded_result, UPPER_BOUND, temp);
 
-    cout << "done semiand" << endl;
     //bajar por temp recursivamente, si hay un 1 en el nodo hijo, marcar padre
     propagate_active(Q_star[0], 1, Q_star[0]->getHeight() - 1, temp, 0);
 

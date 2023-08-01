@@ -15,7 +15,7 @@ duration<double> time_span_select;
 #define AT_X1 0
 #define AT_X2 1
 #define AT_X3 2
-#define AT_X4 2
+#define AT_X4 3
 
 
 std::vector<std::vector<uint64_t>>* read_relation(const std::string filename, uint16_t n_Atts)
@@ -89,8 +89,8 @@ int main(int argc, char** argv)
 
     att_R.push_back(AT_X1); att_R.push_back(AT_X2);
     att_S.push_back(AT_X2); att_S.push_back(AT_X3);
-    att_T.push_back(AT_X1); att_T.push_back(AT_X4);//att_T.push_back(AT_X3);
-    att_Q.push_back(AT_X1); att_Q.push_back(AT_X2);//att_Q.push_back(AT_X1);
+    att_T.push_back(AT_X3); att_T.push_back(AT_X4);//att_T.push_back(AT_X3);
+    att_Q.push_back(AT_X3); att_Q.push_back(AT_X1);//att_Q.push_back(AT_X1);
 
     std::string strRel_R(argv[1]), strRel_S(argv[2]), strRel_T(argv[3]), strRel_Q(argv[4]);
     std::vector<std::vector<uint64_t>>* rel_R = read_relation(strRel_R, att_R.size());
@@ -125,16 +125,16 @@ int main(int argc, char** argv)
     cout << endl;
     qdag_rel_Q.print(output_stream);
 
-    vector<qdag> Q(2);
+    vector<qdag> Q(3);
 
     Q[0] = qdag_rel_R;
     Q[1] = qdag_rel_S;
-    //Q[2] = qdag_rel_T;
+    Q[2] = qdag_rel_T;
 
-    //qdag *Join_Result;
-    //Join_Result = multiJoin(Q, false, 1000);
-    //cout << "\n result:\n";
-    //Join_Result->print(output_stream);
+    qdag *Join_Result;
+    Join_Result = multiJoin(Q, false, 1000);
+    cout << "\n result:\n";
+    Join_Result->print(output_stream);
     semiJoin(Q, false, 1000);
     cout << "\n active:\n";
     Q[0].print_active(output_stream);
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     vector<qdag> Q_pt2(2);
 
     Q_pt2[0] = qdag_rel_R;
-    Q_pt2[1] = qdag_rel_T;
+    Q_pt2[1] = qdag_rel_Q;
 
     qdag *Join_Result2;
     // Join_Result2 = multiJoin(Q_pt2, false, 1000);
