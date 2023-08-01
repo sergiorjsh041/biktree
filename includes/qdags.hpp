@@ -10,9 +10,9 @@
 #include<chrono>
 #include<ctime>
 
-extern high_resolution_clock::time_point start_rank, stop_rank;
-extern double total_time_rank;
-extern duration<double> time_span_rank;
+//extern high_resolution_clock::time_point start_rank, stop_rank;
+//extern double total_time_rank;
+//extern duration<double> time_span_rank;
 
 typedef uint8_t type_mapping_M;
 
@@ -27,9 +27,12 @@ class qdag
     public:
         
         typedef vector<uint64_t> att_set;
+        se_quadtree* Q;
+        int32_t tab_extend_5[16];   // queries of 5 attributes, i.e., dimension 2^5=32
+    int32_t tab_extend_4[16];
+    int32_t tab_extend_3[16];
 
 	 private:
-        se_quadtree* Q;
 	            
         type_mapping_M*    M;    // mapping
         
@@ -43,13 +46,12 @@ class qdag
         
         vector<vector<type_mapping_M>*> M_prime;
 
-        int32_t tab_extend_5[16];   // queries of 5 attributes, i.e., dimension 2^5=32
-        int32_t tab_extend_4[16];
-        int32_t tab_extend_3[16]; 
+
 
     public:
-        
+
         qdag() = default;
+
 
         uint64_t size()
 	{
@@ -144,7 +146,7 @@ class qdag
              uint8_t k, uint8_t d
 				)
         {
-           Q = new se_quadtree(bv, _grid_side, k, d);
+           Q = new se_quadtree(bv, bv,_grid_side, k, d);
 
            Msize = std::pow(k, d);           
            
@@ -188,7 +190,7 @@ class qdag
              //    delete Q;  
              //    Q = NULL;
              //}             
-             if (is_extended_qdag) delete M;       
+             if (is_extended_qdag) delete M;
         }
        
 
@@ -208,6 +210,7 @@ class qdag
                 i_prime = 0;
                
                 for (uint16_t j = 0; j < dim_prime; ++j) {
+                    // Tomar todos los 1 que estan en la pos adecuada en el attribute set
                     if (i & (1 << (dim-attribute_set[j]-1)))
                         i_prime |= mask;
                 
@@ -274,7 +277,7 @@ class qdag
 
         uint16_t getM(uint16_t i)
         {
-            return M[i];        
+            return M[i];
         }
 
 
@@ -335,8 +338,8 @@ class qdag
             //if (Q->getKD() == 2) 
             //    B = 4;
             //else
-            //    B = 16;
- 
+            //    B = 16
+
             for (i = 0; i < B; i++) {
                 x = 0;
                 for(j = 0; j < 8; j++)
@@ -364,7 +367,7 @@ class qdag
 
         inline uint32_t materialize_node_5(uint64_t level, uint64_t node, uint64_t* rank_vector) {
             uint64_t r = Q->rank(level, node);            
-            return tab_extend_5[Q->get_node(level, node, rank_vector, r)]; 
+            return tab_extend_5[Q->get_node(level, node, rank_vector, r)];
         }
 
 
@@ -381,12 +384,34 @@ class qdag
         inline uint32_t materialize_node_5_lastlevel(uint64_t level, uint64_t node) {
             return tab_extend_5[Q->get_node_lastlevel(level, node)];
         }
- 
-           
-        //void print(std::ofstream &ofs)
-        //{
-        //    Q->print(ofs);        
-        //}
+
+
+        inline uint32_t materialize_active_node_3(uint64_t level, uint64_t node, vector<rank_bv_64> temp_active) {
+            return tab_extend_3[Q->get_node_active(level, node, temp_active)];
+        }
+
+
+        inline uint32_t materialize_active_node_4(uint64_t level, uint64_t node, vector<rank_bv_64> temp_active) {
+            return tab_extend_4[Q->get_node_active(level, node, temp_active)];
+        }
+
+
+        inline uint32_t materialize_active_node_5(uint64_t level, uint64_t node, vector<rank_bv_64> temp_active) {
+            return tab_extend_3[Q->get_node_active(level, node, temp_active)];
+        }
+
+
+
+        void print(std::ostream &ost)
+        {
+            Q->print(ost);
+        }
+
+
+        void print_active(std::ostream &ost)
+        {
+            Q->print_active(ost);
+        }
 };
 
 #endif
