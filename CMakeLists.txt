@@ -28,6 +28,8 @@ add_executable(qdags queries/j3.cpp
         )
 add_executable(ccq_qdags  queries/join_test.cpp) #src/test.cpp
 add_executable(ex external/sdsl-lite/tutorial/expl-04.cpp)
+add_executable(prevtest src/prevtest.cpp src/KDTree.cpp)
+
 
 target_link_libraries(ccq_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/lib/libsdsl.a)
 target_link_libraries(ccq_qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort.a)
@@ -40,6 +42,10 @@ target_link_libraries(qdags ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/externa
 target_link_libraries(ex ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort64.a)
 target_link_libraries(ex ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/lib/libsdsl.a)
 target_link_libraries(ex ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort.a)
+
+target_link_libraries(prevtest ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort64.a)
+target_link_libraries(prevtest ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/lib/libsdsl.a)
+target_link_libraries(prevtest ${CMAKE_SOURCE_DIR}/external/sdsl-lite/build/external/libdivsufsort/lib/libdivsufsort.a)
 
 
 include_directories(includes)
